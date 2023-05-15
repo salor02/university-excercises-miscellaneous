@@ -1,0 +1,34 @@
+--6
+
+SELECT subject, COUNT(*)
+FROM nobel
+WHERE yr = 2000
+GROUP BY subject
+
+--7
+
+SELECT subject, COUNT(DISTINCT winner)
+FROM nobel
+GROUP BY subject
+
+--9
+
+SELECT yr
+FROM nobel
+WHERE subject = "Physics"
+GROUP BY yr
+HAVING COUNT(*) = 3
+
+--10
+
+SELECT winner
+FROM nobel
+GROUP BY winner
+HAVING COUNT(*) > 1
+
+--11
+
+SELECT winner
+FROM nobel
+GROUP BY winner
+HAVING COUNT(DISTINCT subject) > 1

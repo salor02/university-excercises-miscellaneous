@@ -1,0 +1,2 @@
+SELECT COUNT(matr) as NUM_STUDENTI
+FROM s

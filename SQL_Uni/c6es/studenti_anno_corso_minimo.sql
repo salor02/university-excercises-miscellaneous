@@ -1,0 +1,5 @@
+SELECT *
+FROM s
+WHERE acorso <= ALL(
+	SELECT DISTINCT acorso
+	FROM s)

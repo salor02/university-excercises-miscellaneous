@@ -1,0 +1,5 @@
+SELECT DISTINCT citta
+FROM s
+WHERE citta NOT IN(
+	SELECT DISTINCT citta
+	FROM d)

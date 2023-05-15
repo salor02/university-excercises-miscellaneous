@@ -1,0 +1,23 @@
+ --3
+ 
+SELECT id, title, yr
+FROM movie
+WHERE title LIKE '%Star Trek%'
+ORDER BY yr
+
+--13
+
+SELECT actor.name
+FROM casting JOIN actor ON casting.actorid = actor.id
+WHERE casting.ord = 1
+GROUP BY actor.id, actor.name
+HAVING COUNT(*) >= 15
+ORDER BY actor.name
+
+--14
+
+SELECT movie.title, COUNT(*)
+FROM casting JOIN movie ON casting.movieid = movie.id
+WHERE movie.yr = 1978
+GROUP BY movie.id, movie.title
+ORDER BY COUNT(*) DESC, movie.title
