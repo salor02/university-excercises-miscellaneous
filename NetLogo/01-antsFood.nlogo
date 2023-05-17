@@ -1,47 +1,89 @@
-to setup
-  clear-all ;; clear the world
-  crt turtlesNum ;; make 10 new turtles (crt: short for “create-turtles”)
-end
 
-to go
-  ask turtles
-  [ fd 1 ;; all turtles move forward one step
-    rt 2 ;; ...and turn a random amount
-    lt 10
-    pd
+to setup
+  clear-all
+  crt turtlesNum
+  ask turtles [
+    setxy random-xcor random-ycor
+    set size 4
+    set color white
+  ]
+
+  ask patches [
+    if random-float 1 < foodDensity [
+      set pcolor yellow
+    ]
   ]
 end
 
-to draw-polygon [num-sides len]
-  pen-down
-  repeat num-sides
-  [
-    fd len ;; forward of len step
-    rt 360 / num-sides
+to go
+  cerca-cibo
+  appoggia-cibo
+end
+
+to vaga
+  rt random 50
+  lt random 50
+  fd 1
+end
+
+to allontanati
+  rt random 360
+  lt random 360
+  fd rgLibera
+  if pcolor = yellow [
+    allontanati
+  ]
+end
+
+to cerca-cibo
+  ask turtles [
+    if color = white [
+      ifelse pcolor = yellow [
+        set color orange
+        set pcolor black
+        fd rgInerzia
+      ] [
+        vaga
+      ]
+    ]
+  ]
+end
+
+to appoggia-cibo
+  ask turtles [
+    if color = orange [
+      ifelse pcolor = black [
+        set color white
+        set pcolor yellow
+        allontanati
+      ] [
+        vaga
+      ]
+    ]
   ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-647
-448
+822
+623
 -1
 -1
-13.0
+4.0
 1
 10
 1
 1
 1
 0
+0
+0
 1
-1
-1
--16
-16
--16
-16
+-75
+75
+-75
+75
 0
 0
 1
@@ -49,11 +91,11 @@ ticks
 30.0
 
 BUTTON
-11
-20
-84
-53
-NIL
+16
+23
+89
+56
+setup
 setup
 NIL
 1
@@ -66,29 +108,12 @@ NIL
 1
 
 BUTTON
-109
-24
-172
-57
-NIL
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-15
-76
-79
-109
+110
+23
+174
+56
 step
-go\nask turtles [draw-polygon 5 who]
+go
 NIL
 1
 T
@@ -101,35 +126,72 @@ NIL
 
 SLIDER
 21
-131
+114
 193
-164
+147
 turtlesNum
 turtlesNum
-0
-1000
-6.0
+1
+100
+50.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-40
-176
-167
-209
-draw polygon
-draw-polygon 8 who
-NIL
+64
+72
+127
+105
+go
+go
+T
 1
 T
-TURTLE
+OBSERVER
 NIL
 NIL
 NIL
 NIL
 1
+
+SLIDER
+22
+167
+194
+200
+foodDensity
+foodDensity
+0
+1
+0.2
+0.01
+1
+NIL
+HORIZONTAL
+
+INPUTBOX
+24
+226
+185
+286
+rgInerzia
+20.0
+1
+0
+Number
+
+INPUTBOX
+26
+299
+187
+359
+rgLibera
+5.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
