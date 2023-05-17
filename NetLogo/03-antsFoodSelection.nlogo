@@ -1,48 +1,179 @@
-to setup
-  clear-all
+globals [
+  morti
+]
+
+patches-own [
+  feromone             ;; quantità di feromone nella patch
+  cibo                 ;; quantità di cibo nella patch (0, 1)
+  nido?                ;; vero se la patch compone il nido, falso altrimenti
+  odoreNido            ;; più è alto, più si è vicini al nido
+]
+
+turtles-own [
+  angolo_virata        ;; angolo virata
+  velocita             ;; passi per cui va avanti [1,2]
+  scorta               ;; >0 per sopravvivenza
+  metabolismo          ;; da sottrarre alla scorta [1,2,3,4,5]
+]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+to setup-turtles
   crt turtlesNum
   ask turtles [
-    setxy random-xcor random-ycor
-    set size 4
-    set color white
-  ]
+    setxy 0 0
+    set size 2
+    set color red
+    set shape "bug"
 
-  ask patches [
-    if random-float 1 < foodDensity [
-      set pcolor yellow
-    ]
+    setup-turtle-vars
+
+    set morti 0
   ]
 end
+
+to setup-turtle-vars
+  set scorta scorta_tartarughe
+  set metabolismo random 5 + 1
+  set velocita random 2 + 1
+  set angolo_virata random angolo_virata_max
+end
+
+to setup-patches
+  ask patches
+  [ setup-nido
+    setup-cibo
+    ricolora-patch ]
+end
+
+to setup-nido  ;; patch procedure
+               ;; set nido? vero se la patch compone il nido, falso altrimenti
+  set nido? (distancexy 0 0) < 5
+  ;; spande l'odore del nido; più è alto, più si è vicini al nido
+  set odoreNido 200 - distancexy 0 0
+end
+
+to setup-cibo  ;; patch procedure
+  setup-cibo1
+  setup-cibo2
+  setup-cibo3
+end
+
+
+to setup-cibo1  ;; patch procedure
+                ;; setup della sorgente di cibo source sulla destra
+  if (distancexy (0.6 * max-pxcor) 0) < 5
+  [ set cibo 1 ]
+end
+
+to setup-cibo2  ;; patch procedure
+                ;; setup della sorgente di cibo source sulla sinistra, in basso
+  if (distancexy (-0.6 * max-pxcor) (-0.6 * max-pycor)) < 5
+  [ set cibo 1 ]
+end
+
+to setup-cibo3  ;; patch procedure
+                ;; setup della sorgente di cibo source sulla sinistra, in alto
+  if (distancexy (-0.8 * max-pxcor) (0.8 * max-pycor)) < 5
+  [ set cibo 1 ]
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to go
+  set morti 0
   cerca-cibo
   appoggia-cibo
-end
-
-to vaga
-  rt random angoloVirata
-  lt random angoloVirata
-  fd 1
-end
-
-to allontanati
-  rt random angoloVirata
-  lt random angoloVirata
-  fd rgLibera
-  if pcolor = yellow [
-    allontanati
+  ask turtles [
+    fd velocita
+    set scorta scorta - metabolismo
+    check_scorta
   ]
+  gestione_feromone
+  rigenera_cibo
+  tick
+end
+
+to check_scorta
+  if scorta < 0[
+    setup-turtle-vars
+    setxy 0 0
+    set morti morti + 1
+  ]
+end
+
+to rigenera_cibo
+  ask patches[
+    if remainder ticks 140 = 0 [setup-cibo1]
+    if remainder ticks 280 = 0 [setup-cibo2]
+    if remainder ticks 420 = 0 [setup-cibo3]
+  ]
+end
+
+to ricolora-patch  ;; patch procedure
+  ;; dà il colore al nido ed alle sorgenti di cibo
+  ifelse nido?
+  [ set pcolor violet ]
+  [ ifelse cibo > 0
+    [ set pcolor yellow ]
+    ;; riscala il colore per mostrare bene la concentrazione di feromone
+    [ set pcolor scale-color green feromone 0.1 5]]
+end
+
+to gestione_feromone
+  diffuse feromone (diffusion_rate / 100) ;diffusione feromone
+  ask patches[
+    set feromone feromone * (100 - evaporation_rate) / 100 ;evaporazione feromone
+    ricolora-patch
+  ]
+end
+
+to-report senti_feromone_ad_angolo [angolo]
+  let p patch-right-and-ahead angolo 1 ;;seleziona patch avanti di 1 e a destra di angolo
+  ifelse [feromone] of p < 0.05 or [feromone] of p > 2
+    [report 0]
+    [report [feromone] of p]
+end
+
+to-report senti_nido_ad_angolo [angolo]
+  let p patch-right-and-ahead angolo 1 ;;seleziona patch avanti di 1 e a destra di angolo
+  report [odoreNido] of p
+end
+
+to segui_feromone
+  let feromone_ahead senti_feromone_ad_angolo 0
+  let feromone_rx senti_feromone_ad_angolo 45
+  let feromone_sx senti_feromone_ad_angolo -45
+
+  if feromone_ahead < feromone_rx or feromone_ahead < feromone_sx[
+    ifelse feromone_rx > feromone_sx
+      [rt random angolo_virata]
+      [lt random angolo_virata]
+  ]
+end
+
+to ritorna_nido
+  let nido_ahead senti_nido_ad_angolo 0
+  let nido_rx senti_nido_ad_angolo 45
+  let nido_sx senti_nido_ad_angolo -45
+
+  if nido_ahead <= nido_rx or nido_ahead <= nido_sx[
+    ifelse nido_rx > nido_sx
+      [rt random angolo_virata]
+      [lt random angolo_virata]
+  ]
+  ask patch-here [set feromone feromone + 60]
 end
 
 to cerca-cibo
   ask turtles [
-    if color = white [
-      ifelse pcolor = yellow [
-        set color orange
+    if color = red [
+      ifelse [cibo] of patch-here = 1 [ ;;cibo trovato
+        set color blue
         set pcolor black
-        fd rgInerzia
-      ] [
-        vaga
+        ask patch-here [set cibo 0]
+        rt 180
+      ] [ ;;cibo non trovato
+        segui_feromone
       ]
     ]
   ]
@@ -50,13 +181,12 @@ end
 
 to appoggia-cibo
   ask turtles [
-    if color = orange [
-      ifelse pcolor = black [
-        set color white
-        set pcolor yellow
-        allontanati
-      ] [
-        vaga
+    if color = blue [
+      ifelse [nido?] of patch-here = true [ ;spazio per deposito cibo trovato
+        set color red
+        set scorta scorta_tartarughe ;ricarica la scorta se torna al nido col cibo
+      ] [ ;spazio non trovato
+        ritorna_nido
       ]
     ]
   ]
@@ -65,11 +195,11 @@ end
 GRAPHICS-WINDOW
 210
 10
-822
-623
+573
+374
 -1
 -1
-4.0
+5.0
 1
 10
 1
@@ -79,10 +209,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--75
-75
--75
-75
+-35
+35
+-35
+35
 0
 0
 1
@@ -95,7 +225,7 @@ BUTTON
 89
 56
 setup
-setup
+clear-all\nreset-ticks\nsetup-turtles\nsetup-patches
 NIL
 1
 T
@@ -131,8 +261,8 @@ SLIDER
 turtlesNum
 turtlesNum
 1
-100
-50.0
+200
+134.0
 1
 1
 NIL
@@ -160,48 +290,143 @@ SLIDER
 167
 194
 200
-foodDensity
-foodDensity
+diffusion_rate
+diffusion_rate
 0
+100
+51.0
 1
-0.16
-0.01
 1
 NIL
 HORIZONTAL
-
-INPUTBOX
-24
-226
-185
-286
-rgInerzia
-20.0
-1
-0
-Number
-
-INPUTBOX
-26
-299
-187
-359
-rgLibera
-5.0
-1
-0
-Number
 
 INPUTBOX
 29
 371
 184
 431
-angoloVirata
-1.0
+angolo_virata_max
+40.0
 1
 0
 Number
+
+SLIDER
+24
+218
+196
+251
+evaporation_rate
+evaporation_rate
+0
+100
+11.0
+1
+1
+NIL
+HORIZONTAL
+
+INPUTBOX
+33
+275
+188
+335
+scorta_tartarughe
+200.0
+1
+0
+Number
+
+PLOT
+604
+28
+804
+178
+Grafico scorta
+scorta
+qty_ants
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-x-range 0 (scorta_tartarughe)\nset-plot-y-range 0 ceiling (turtlesNum)" ""
+PENS
+"default" 1.0 1 -16777216 true "set-histogram-num-bars 15" "histogram [scorta] of turtles"
+
+PLOT
+614
+203
+814
+353
+Metabolismo
+metabolismo
+qty_ants
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-x-range 1 6\nset-plot-y-range 0 turtlesNum" ""
+PENS
+"default" 1.0 1 -16777216 true "" "histogram [metabolismo] of turtles"
+
+PLOT
+615
+380
+815
+530
+Angolo virata
+angolo
+qty_ants
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-x-range 0 50\nset-plot-y-range 0 turtlesNum" ""
+PENS
+"default" 1.0 1 -16777216 true "" "histogram [angolo_virata] of turtles"
+
+PLOT
+307
+402
+507
+552
+Vivi e morti
+tempo
+qty_ants
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -13840069 true "" "plot count turtles"
+"pen-1" 1.0 0 -2674135 true "" "plot morti"
+
+PLOT
+59
+478
+259
+628
+Velocita
+velocita
+qty_ants
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-x-range 1 3\nset-plot-y-range 0 turtlesNum" ""
+PENS
+"default" 1.0 1 -16777216 true "set-histogram-num-bars 2" "histogram [velocita] of turtles"
 
 @#$#@#$#@
 ## WHAT IS IT?
