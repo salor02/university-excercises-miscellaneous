@@ -1,0 +1,16 @@
+CREATE FUNCTION riordino() RETURNS trigger AS $$
+BEGIN
+	IF(NEW.qta_disp < 0) THEN
+		RAISE EXCEPTION 'Modifica impossibile';
+	ELSE
+		INSERT INTO riordino VALUES (NEW.cod_prod, CURRENT_DATE, NEW.qta_riord);
+	END IF;
+ RETURN NEW;
+ END;
+$$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER GESTIONE_RIORDINO
+AFTER UPDATE ON MAGAZZINO
+FOR EACH ROW
+WHEN (NEW.qta_disp < NEW.qta_riord)
+EXECUTE PROCEDURE riordino();
