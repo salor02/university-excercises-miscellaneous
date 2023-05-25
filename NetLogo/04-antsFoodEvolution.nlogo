@@ -1,5 +1,9 @@
 globals [
   morti
+  nati
+  sgl_scorta_default
+  sprout_price_default
+  min_eta_sprout_default
 ]
 
 patches-own [
@@ -13,11 +17,17 @@ turtles-own [
   angolo_virata        ;; angolo virata
   velocita             ;; passi per cui va avanti [1,2]
   scorta               ;; >0 per sopravvivenza
+  sgl_scorta           ;; scorta necessaria per fare figli
+  eta                  ;; contatore, 0 appena nati
   metabolismo          ;; da sottrarre alla scorta [1,2,3,4,5]
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 to setup-turtles
+  set sgl_scorta_default scorta_tartarughe / 1.6
+  set sprout_price_default scorta_tartarughe / 10
+  set min_eta_sprout_default 30
+
   crt turtlesNum
   ask turtles [
     setxy 0 0
@@ -26,9 +36,10 @@ to setup-turtles
     set shape "bug"
 
     setup-turtle-vars
-
-    set morti 0
   ]
+
+  set morti 0
+  set nati 0
 end
 
 to setup-turtle-vars
@@ -36,6 +47,7 @@ to setup-turtle-vars
   set metabolismo random 5 + 1
   set velocita random 2 + 1
   set angolo_virata random angolo_virata_max + 10
+  set eta 0
 end
 
 to setup-patches
@@ -87,6 +99,7 @@ to go
     fd velocita
     set scorta scorta - metabolismo
     check_scorta
+    set eta eta + 1
   ]
   gestione_feromone
   rigenera_cibo
@@ -95,17 +108,62 @@ end
 
 to check_scorta
   if scorta < 0[
-    setup-turtle-vars
-    setxy 0 0
+    die
     set morti morti + 1
   ]
 end
 
+to riproduzione
+  if any? other turtles-here with [eta > 30] [
+    let partner item 0 sort-on [scorta] other turtles-here with [eta > 30]
+    if [scorta] of partner > sgl_scorta[
+
+      let met_padre metabolismo
+      let met_madre [metabolismo] of partner
+
+      let vel_padre velocita
+      let vel_madre [velocita] of partner
+
+      let ang_padre angolo_virata
+      let ang_madre [angolo_virata] of partner
+
+      ask patch-here[
+        sprout 1 [
+          set size 2
+          set color red
+          set shape "bug"
+
+          setup-turtle-vars
+
+          ifelse random 2 = 0
+            [set metabolismo met_padre]
+            [set metabolismo met_madre]
+
+          ifelse random 2 = 0
+            [set velocita vel_padre]
+            [set velocita vel_madre]
+
+          ifelse random 2 = 0
+            [set angolo_virata ang_padre]
+            [set angolo_virata ang_madre]
+
+         set nati nati + 1
+        ]
+
+      ]
+
+      set scorta scorta - sprout_price_default
+
+     ]
+   ]
+end
+
+
 to rigenera_cibo
   ask patches[
-    if remainder ticks 140 = 0 [setup-cibo1]
-    if remainder ticks 280 = 0 [setup-cibo2]
-    if remainder ticks 420 = 0 [setup-cibo3]
+    if remainder ticks 70 = 0 [setup-cibo1]
+    if remainder ticks 140 = 0 [setup-cibo2]
+    if remainder ticks 210 = 0 [setup-cibo3]
   ]
 end
 
@@ -182,6 +240,8 @@ end
 to appoggia-cibo
   ask turtles [
     if color = blue [
+      if scorta > sgl_scorta and eta > 30 [riproduzione]
+
       ifelse [nido?] of patch-here = true [ ;spazio per deposito cibo trovato
         set color red
         set scorta scorta_tartarughe ;ricarica la scorta se torna al nido col cibo
@@ -262,7 +322,7 @@ turtlesNum
 turtlesNum
 1
 200
-149.0
+25.0
 1
 1
 NIL
@@ -294,7 +354,7 @@ diffusion_rate
 diffusion_rate
 0
 100
-51.0
+50.0
 1
 1
 NIL
@@ -427,6 +487,24 @@ false
 "set-plot-x-range 1 3\nset-plot-y-range 0 turtlesNum" ""
 PENS
 "default" 1.0 1 -16777216 true "set-histogram-num-bars 2" "histogram [velocita] of turtles"
+
+PLOT
+312
+565
+512
+715
+Nascite
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot nati"
 
 @#$#@#$#@
 ## WHAT IS IT?
