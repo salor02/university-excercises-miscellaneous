@@ -1,4 +1,4 @@
-% Aalcola la fattorizzazione di Gauss con pivoting parziale: ovvero 
+% Calcola la fattorizzazione di Gauss con pivoting parziale: ovvero 
 % restituisca tre matrici L,U,P (L triangolare inferiore, U triangolare 
 % superiore) tali che L*U = P*A. 
 
@@ -10,7 +10,7 @@ function [L,U,P] = my_gauss_LU_piv(A)
     for k = 1:num-1
         %calcolo elemento massimo colonna
         [~,r] = max (abs(A(k:num,k)));
-        r = r + k-1;
+        r = r + k-1; %serve perchè max da l'indice del vettore passato
         %se massimo è diverso da elemento diagonale
         if (r~=k)
 
