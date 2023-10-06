@@ -13,24 +13,31 @@ using namespace std;
 
 digit   [0-9]
 letter  [A-Za-z]
-sep     [\s\t\n]
+sep     [ \t\n]
 op      [+-/*]
+id      {letter}({letter}|{digit})*
 
 /* read only one input file */
 %option noyywrap
 
 %%
 
-{op}    { cout << "operatore <" << yytext << ">\n"; }
+{op}        { cout << "operand <" << yytext << ">\n"; }
 
-"def"   { cout << "keyword <" << yytext << ">\n"; }
-"extern"   { cout << "        keyword <" << yytext << ">" << endl; }
+"("         { cout << "open bracket <" << yytext << ">\n"; }
+")"         { cout << "closed bracket <" << yytext << ">\n"; }
+";"         { cout << "semicolon <" << yytext << ">\n"; }
 
-{sep}*  {}              
+"def"       { cout << "keyword <" << yytext << ">\n"; }
+"extern"    { cout << "keyword <" << yytext << ">\n"; }
 
-{LETTER}({LETTER}|{DIGIT})*                { cout << "        identificatore <" << yytext << ">" << endl; }
+{digit}*    { cout << "number <" << yytext << ">\n"; }
+
+{sep}*      {}              
+
+{id}        { cout << "identificatore <" << yytext << ">\n"; }
            
-.                 { cout << "Token sconosciuto <" << yytext[0] << ">" << endl; }
+.           { cout << "Token sconosciuto <" << yytext << ">\n"; }
 
 %%
 
