@@ -14,7 +14,7 @@ using namespace std;
 digit   [0-9]
 letter  [A-Za-z]
 sep     [ \t\n]
-op      [+-/*]
+op      [+-/*=]
 id      {letter}({letter}|{digit})*
 
 /* read only one input file */
@@ -40,9 +40,3 @@ id      {letter}({letter}|{digit})*
 .           { cout << "Token sconosciuto <" << yytext << ">\n"; }
 
 %%
-
-int main(int argc, char** argv) {
-    FlexLexer* lexer = new yyFlexLexer;
-    lexer->yylex();
-    return 0;
-}

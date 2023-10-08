@@ -338,7 +338,7 @@ static const YY_CHAR yy_ec[256] =
         1,    2,    1,    1,    1,    1,    1,    1,    1,    4,
         5,    6,    6,    6,    6,    6,    6,    7,    7,    7,
         7,    7,    7,    7,    7,    7,    7,    1,    8,    1,
-        1,    1,    1,    1,    9,    9,    9,    9,    9,    9,
+        6,    1,    1,    1,    9,    9,    9,    9,    9,    9,
         9,    9,    9,    9,    9,    9,    9,    9,    9,    9,
         9,    9,    9,    9,    9,    9,    9,    9,    9,    9,
         1,    1,    1,    1,    1,    1,    9,    9,    9,   10,
@@ -1633,10 +1633,4 @@ void yyfree (void * ptr )
 
 #line 42 "lexer.l"
 
-
-int main(int argc, char** argv) {
-    FlexLexer* lexer = new yyFlexLexer;
-    lexer->yylex();
-    return 0;
-}
 
