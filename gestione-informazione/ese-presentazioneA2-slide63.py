@@ -1,7 +1,6 @@
 from urllib import request
 import nltk
-from nltk.corpus import stopwords
-from nltk.corpus import wordnet as wn
+from nltk.corpus import stopwords, wordnet as wn, wordnet_ic
 from nltk.stem.porter import PorterStemmer
 
 porter = PorterStemmer()
@@ -9,7 +8,7 @@ porter = PorterStemmer()
 #url = "https://www.gutenberg.org/cache/epub/71794/pg71794.txt"
 #response = request.urlopen(url)
 #text = response.read().decode('utf8')
-text = 'cat mouse dog is planet farm wheat rice red blue green Pokemon'
+text = 'cat mouse dog is planet farm wheat rice red blue green'
 
 #tokenizzazione
 print("Tokenizing...")
@@ -35,7 +34,21 @@ print("\nRESULT:\n")
 print(result)
 
 #word disambiguation
+brown_ic = wordnet_ic.ic('ic-brown.dat')
+
+#dict delle parole
+weight = {}
 for word in result:
+
+    word_weight = {}
+
     for meaning in wn.synsets(word, wn.NOUN):
-        print(meaning)
+        word_weight[meaning] = 0
+
+    weight[word] = word_weight
+
+
+#stampa
+for item in weight.items():
+    print(item)
     
