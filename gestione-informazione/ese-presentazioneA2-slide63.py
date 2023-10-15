@@ -5,10 +5,18 @@ from nltk.stem.porter import PorterStemmer
 
 porter = PorterStemmer()
 
-#url = "https://www.gutenberg.org/cache/epub/71794/pg71794.txt"
-#response = request.urlopen(url)
-#text = response.read().decode('utf8')
-text = 'cat mouse dog is planet farm wheat rice red blue green'
+text = 'mouse tea leave planet farm cat computer tobacco electricity'
+
+#compara significati di base word con tutti i significati di compare word (non mi piace molto, poco efficiente)
+def confidence_calc(base_word, compare_word):
+    for meaning in base_word.keys():
+        max = 0
+        #trova il significato di compare word più simile e aggiunge questo valore alla confidence
+        for compare_meaning in compare_word.keys():
+            similarity = meaning.res_similarity(compare_meaning, brown_ic)
+            if similarity > max:
+                max = similarity
+        base_word[meaning] = base_word[meaning] + max
 
 #tokenizzazione
 print("Tokenizing...")
@@ -37,18 +45,23 @@ print(result)
 brown_ic = wordnet_ic.ic('ic-brown.dat')
 
 #dict delle parole
-weight = {}
+words = {}
 for word in result:
 
-    word_weight = {}
+    confidence = {}
 
     for meaning in wn.synsets(word, wn.NOUN):
-        word_weight[meaning] = 0
+        confidence[meaning] = 0
 
-    weight[word] = word_weight
+    words[word] = confidence
 
+for word in words.values():
+    for compare_word in words.values():
+        if not compare_word == word:
+            confidence_calc(word, compare_word)
 
 #stampa
-for item in weight.items():
-    print(item)
-    
+for item in words.keys():
+    res = max(words[item], key=words[item].get)
+    print(item + '-->' + res.definition())
+
