@@ -1,0 +1,68 @@
+-- 1
+Calcolare tutti i parametri delle subnet per gli indirizzi IP:
+a) 192.168.5.157/20 
+b) 192.168.5.157/28 
+c) 155.185.48.200/26
+
+a)
+192.168.5.157/20 
+
+NETID       192.168.0.0
+NETMASK     255.255.240.0
+HOSTMIN     192.168.0.1
+HOSTMAX     192.168.15.254
+HOSTNUM     2^12-2 = 4094
+BROAD.(dir) 192.168.15.255
+
+b)
+192.168.5.157/28  
+
+NETID       192.168.5.144
+NETMASK     255.255.255.240
+HOSTMIN     192.168.5.145
+HOSTMAX     192.168.15.158
+HOSTNUM     2^4-2 = 14
+BROAD.(dir) 192.168.5.159
+
+c)
+155.185.48.200/26
+
+NETID       155.185.48.192
+NETMASK     255.255.255.192
+HOSTMIN     155.185.48.193
+HOSTMAX     155.185.48.254
+HOSTNUM     2^6-2 = 62
+BROAD.(dir) 155.185.48.255
+
+-- 2
+Calcolare il CIDR, HostMin, HostMax e il numero di host, dati
+NetID = 192.168.40.0 e netmask = 255.255.252.0
+
+CIDR        22
+HOSTMIN     192.168.40.1
+HOSTMAX     40 -> 001010|00 -> 001010|11 -> 43 -> 192.168.43.254
+HOSTNUM     2^10-2 = 1022
+
+-- 3
+Trovare tutti i parametri della subnet sapendo che uno degli host ha
+indirizzo IP 10.51.45.3/14
+
+NETID       51 -> 001100|11 -> 001100|00 -> 10.48.0.0
+NETMASK     255.252.0.0
+HOSTMIN     10.48.0.1
+HOSTMAX     001100|11 -> 51 -> 10.51.255.254
+HOSTNUM     2^14-2 = 16382
+BROAD.(dir) 10.51.255.255
+
+-- 4
+Organizzare in quattro subnet la rete 155.185.48.0/24, sapendo che una
+delle reti includerà un massimo 120 host, mentre le altre sono di
+dimensioni inferiori. Si richiede di sfruttare completamente il range di
+indirizzi, e non sovradimensionare inutilmente le subnet (suggerimento =>
+1/8 + 1/8 + 1/4 + 1/2 = 1)
+
+A.  (1/2)   00000000    155.185.48.0/25     -> 155.185.48.1 - 155.185.48.127
+B.  (1/4)   10000000    155.185.48.128/26   -> 155.185.48.129 - 155.185.48.191
+C.  (1/8)   11000000    155.185.48.192/27   -> 155.185.48.193 - 155.185.48.223
+D.  (1/8)   11100000    155.185.48.224/27   -> 155.185.48.225 - 155.185.48.254   
+
