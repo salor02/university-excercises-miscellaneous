@@ -1,10 +1,15 @@
 /*
-TODO: leggere alfabeto anche non char, prototipi e commenti
+TODO: prova con altri automi
 
 NB:
-1.  Il programma funziona solo se gli stati dell'automa non deterministico in input sono numeri interi 
+1.  Specificare nome file di input come parametro da terminale
+2.  Se si vuole ottenere una stampa su file specificare nome file di output come secondo parametro, altrimenti la stampa verrà
+    effettuata su standard output
+3.  Il programma funziona solo se gli stati dell'automa non deterministico in input sono numeri interi 
     in sequenza da 0 a N. Per supportare numeri interi non sequenziale sarebbe stato necessario inserire una lista
     all'interno della struct AFND.
+4.  Il programma funziona solo se l'alfabeto dei possibili simboli di input è rappresentabile tramite char, in caso di alfabeto costituito
+    da stringhe il programma crusherebbe.
 */
 
 #include <iostream>
@@ -21,20 +26,24 @@ using namespace std;
 
 const char EPS = '@'; //epsilon per indicare transizione con input non necessario
 
+//struttura rappresentante automi finiti non deterministici
 struct AFND{
-    map<pair<int, char>, set<int>> data;
-    string alpha;
-    int state_number;
-    set<int> final_state;
+    map<pair<int, char>, set<int>> data; //"tabella" delle transizioni cioè (stato, input) -> stato_dest
+    string alpha; //alfabeto contenuto in un array di char, cioe una stringa
+    int state_number; //numero di stati, adatta in questo caso solo al salvataggio di stati interi sequenziali
+    set<int> final_state; //set degli stati finali
 };
 
+//struttura rappresentante automi finiti deterministici
 struct AFD{
-    map<pair<int, char>, int> data;
-    string alpha;
-    vector<set<int>> state_list;
-    set<int> final_state;
+    map<pair<int, char>, int> data; /*"tabella" delle transizioni cioè (stato, input) -> stato_dest (il numero intero di ogni stato in questo caso rappresenta
+                                        un set di stati provenienti dall'automa non deterministico)*/
+    string alpha;   //alfabeto contenuto in un array di char, cioe una stringa
+    vector<set<int>> state_list; //lista degli stati, in cui ogni stato corrisponde ad un set di interi corrispondenti a stati dell'automa ND
+    set<int> final_state; //set degli stati finali
 };
 
+//scansione dello stream di input e conseguente salvataggio dell'automaND su struttura dati
 void upload_AFND(AFND &automaND, ifstream &f){
 
     string line;
@@ -96,6 +105,7 @@ void upload_AFND(AFND &automaND, ifstream &f){
     }*/
 }
 
+//cerca lo stato iniziale dell'automa, da cui dovrà partire poi la conversione in automa deterministico
 bool get_initial_state(const AFND &automaND, int &initial_state){
     
     //creazione di un set degli stati
@@ -122,22 +132,29 @@ bool get_initial_state(const AFND &automaND, int &initial_state){
     return false;
 }
 
+/*"esplora" tutte le epsilon transizioni a partire dallo stato passato come parametro, serve a costruire in maniera 
+ricorsiva gli stati dell'automa deterministico come insieme di stati dell'automa non deterministico*/
 void explore_eps(const AFND &automaND, int initial_state, set<int> &state){
     
+    //inserisce nello stato dell'automaD lo stato da cui inizia la ricerca
     state.insert(initial_state);
     
+    //costruisce un set formato da tutte le destinazioni raggiungibili dallo stato iniziale tramite un'epsilon transizione
     set<int> epsilon_set = automaND.data.at(make_pair(initial_state, EPS));
 
-    if(epsilon_set.size() < 1) return; //nessuna destinazione raggiungibile tramite EPS per questo punto iniziale
+    //nessuna destinazione raggiungibile tramite EPS per questo punto iniziale
+    if(epsilon_set.size() < 1) return;
 
+    //richiama la funzione su tutte le nuove destinazioni trovate, finchè non si trova uno stato da cui non parte nessuna eps-transizione
     for(auto item:epsilon_set){
         explore_eps(automaND, item, state);
     }
 }
 
+//applica il vero e proprio algoritmo di conversione utilizzando anche la funzione explore_eps
 bool conversion(const AFND &automaND, AFD &automaD, const int initial_state){
 
-    //i due alfabeti dei simboli sono uguali eccetto che per epsilon
+    //i due alfabeti dei simboli sono uguali eccetto che per la epsilon
     automaD.alpha = automaND.alpha;
     automaD.alpha.erase(0,1);
     
@@ -157,11 +174,11 @@ bool conversion(const AFND &automaND, AFD &automaD, const int initial_state){
     while(!stateD_queue.empty()){
         current_state = stateD_queue.front();
         
-        //vengono analizzate tutte le transizioni di tutti gli elementi di current_state (tranne le epsilon) 
+        //vengono analizzate tutte le transizioni di tutti gli elementi di current_state
         for(int i = 0; i < automaD.alpha.size(); i++){
             discovered_state.clear();
-
             char current_input = automaD.alpha[i];
+
             for(auto item:current_state){
                 set<int> current_output = automaND.data.at(make_pair(item, current_input));
                 for(auto output:current_output){
@@ -177,6 +194,7 @@ bool conversion(const AFND &automaND, AFD &automaD, const int initial_state){
             int discovered_output;//identifica lo stato di arrivo della transizione
 
             if(discovered_state.size() > 0){
+                //stato scoperto non presente nella lista degli stati trovati
                 if(discovered_itr == automaD.state_list.end()){
                     stateD_queue.push(discovered_state);
                     automaD.state_list.push_back(discovered_state);
@@ -187,7 +205,7 @@ bool conversion(const AFND &automaND, AFD &automaD, const int initial_state){
                 }
 
                 /*viene registrata una transizione dallo stato corrente allo stato discovered. Se quest'ultimo è già presente nella lista degli stati
-                verrà cercato e ottenuto il suo indice altrimenti viene preso come indice la size della lista dato che è sicuramente l'ultimo stato inserito*/
+                verrà cercato e ottenuto il suo indice altrimenti viene preso come indice la size della lista - 1 dato che è sicuramente l'ultimo stato inserito*/
                 auto current_itr = find(automaD.state_list.begin(), automaD.state_list.end(), current_state);
                 automaD.data[make_pair(distance(automaD.state_list.begin(), current_itr), current_input)] = discovered_output;  
             }
@@ -211,6 +229,7 @@ bool conversion(const AFND &automaND, AFD &automaD, const int initial_state){
     return true;
 }
 
+//stampa l'automa deterministico appena costurito sullo stream passato come parametro
 void printAFD(const AFD &automaD, ostream &os){
     //stampa degli stati
     for(auto state:automaD.state_list){
