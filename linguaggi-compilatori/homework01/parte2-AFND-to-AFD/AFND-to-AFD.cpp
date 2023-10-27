@@ -1,6 +1,4 @@
 /*
-TODO: prova con altri automi
-
 NB:
 1.  Specificare nome file di input come parametro da terminale
 2.  Se si vuole ottenere una stampa su file specificare nome file di output come secondo parametro, altrimenti la stampa verrà
@@ -309,6 +307,7 @@ int main(int argc, char *argv[]){
 
             cout<<"Saving on file '"<<file_name<<"' ...\n";
             printAFD(automaD, f);
+            f.close();
         }
         else{
             cout<<"No output file provided, will write result on default output stream\n";

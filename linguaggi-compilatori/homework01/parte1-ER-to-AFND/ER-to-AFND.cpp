@@ -1,3 +1,17 @@
+/*
+TODO: commenti
+
+NB:
+1.  Specificare nome file di input come parametro da terminale
+2.  Se si vuole ottenere una stampa su file specificare nome file di output come ultimo parametro, altrimenti la stampa verrà
+    effettuata su standard output
+3.  Dato che l'automa viene costruito sulla base di 3 array paralleli (che non possono contenere celle vuote), 
+    per definire una destinazione non esistente viene salvato come valore -1
+4.  Rispetto al template di partenza ho aggiunto i metodi pubblici: parallel_push_back, parallel_set, convert_to_AFND. Quest'ultimo 
+    è, ovviamente, una rielaborazione del metodo visit già implementato.
+5.  Rispetto al template di partenza ho aggiunto la procedura print_AFND
+*/
+
 #include <iostream>
 #include <fstream>
 #include <set>
@@ -7,12 +21,19 @@
 #include <utility>
 using namespace std;
 
+// Definizione di macro per l'output verboso
+#define VERBOSE(msg) if(verbose) { cout << msg << endl; }
+
 set<char> operators = {'*','|','.'}; // Il punto indica la concatenazione
 
+const char EPS = '@'; //epsilon per indicare transizione con input non necessario
+
 struct AFND{
+    string symbols;
     vector<char> input;
     vector<int> dest1;
     vector<int> dest2;
+    pair<int, int> terminal_states; //stati iniziale e finale
 };
 
 class AST {
@@ -63,33 +84,83 @@ public:
         return treerep;
     }
 
+    //procedura ausiliare per l'inserimento in coda nei vettori paralleli
+    void parallel_push_back(AFND& automaND, char input, int dest1, int dest2){
+        automaND.input.push_back(input);
+        automaND.dest1.push_back(dest1);
+        automaND.dest2.push_back(dest2);
+    }
+
+    //procedura ausiliare per la modifica di un elemento all'interno dei vettori paralleli
+    void parallel_set(AFND& automaND, int idx, char input, int dest1, int dest2){
+        automaND.input[idx] = input;
+        automaND.dest1[idx] = dest1;
+        automaND.dest2[idx] = dest2;
+    }
+
+    /*  visita l'AST in postorder e restituisce l'indice di stato inziale e finale riferito agli array paralleli.
+        In sostanza, questa funzione restituisce al chiamante lo stato iniziale e finale del "sottoautoma" costruito sulla base delle
+        informazioni contenute nei sottoalberi di sinistra e destra. L'automa finale viene quindi costruito ricorsivamente seguendo le regole di priorità
+        definite dalla visita postorder. NB: I nodi inizializzati con tutti i campi "nulli" (' ', -1, -1) rappresentano stati in attesa di essere
+        collegati ad altri stati, oppure, nel caso dell'ultima ricorsione, lo stato finale.*/
     pair<int, int> convert_to_AFND(AFND &automaND){
+        //vengono memorizzati l'inidice dello stato iniziale e quello dello stato finale della transizione gestita
+        int start_idx, end_idx;
 
         if (left != nullptr) {
             pair<int, int> left_child_id = left->convert_to_AFND(automaND);    // Visitiamo il sottoalbero di sx
             if (right != nullptr) {
                 // Caso di nodo con due figli (concatenazione o unione)
                 pair<int, int> right_child_id = right->convert_to_AFND(automaND); // Visitiamo il sottoalbero di dx
+
+                //concatenazione
+                if(symb == '.'){
+                    //collegamento stato finale ricavato dall'albero sinistro con stato iniziale ricavato dall'albero destro
+                    this->parallel_set(automaND, left_child_id.second, EPS, right_child_id.first, -1);
+                    start_idx = left_child_id.first;
+                    end_idx = right_child_id.second;
+                }
+
+                //unione
+                if(symb == '|'){
+                    //nuovo stato iniziale e collegamento a stati iniziali ricavati da entrambi i sottoalberi
+                    this->parallel_push_back(automaND, EPS, left_child_id.first, right_child_id.first);
+                    start_idx = automaND.input.size() - 1;
+                    //nuovo stato finale
+                    this->parallel_push_back(automaND,' ', -1, -1);
+                    end_idx = automaND.input.size() - 1;
+                    //collegamento vecchio stato finale ricavato da albero sinistro con nuovo stato finale
+                    this->parallel_set(automaND, left_child_id.second, EPS, end_idx, -1);
+                    //collegamento vecchio stato finale ricavato da albero destro con nuovo stato finale
+                    this->parallel_set(automaND, right_child_id.second, EPS, end_idx, -1);
+                }
             } 
-            else {
+            else{
                 // Caso di nodo con un solo figlio (chiusura riflessiva)
 
-
+                //nuovo stato finale
+                this->parallel_push_back(automaND,' ', -1, -1);
+                end_idx = automaND.input.size() - 1;
+                //collegamento vecchio stato finale a nuovo stato finale e a vecchio stato iniziale
+                this->parallel_set(automaND, left_child_id.second, EPS, left_child_id.first, end_idx);
+                //nuovo stato iniziale e collegamento a vecchio stato iniziale e a nuovo stato finale
+                this->parallel_push_back(automaND, EPS, left_child_id.first, end_idx);
+                start_idx = automaND.input.size() - 1;
             }
         } 
         else{
             //Nodo foglia (simbolo dell'alfabeto)
             /*  Viene inserita nella struttura dati la transizione che riconosce un singolo carattere, essa ha come
                 input il carattere del nodo foglia e ha un solo stato di destinazione*/
-            automaND.input.push_back(symb);
-            automaND.dest1.push_back(automaND.input.size());
-            automaND.dest2.push_back(-1);
-
-            return make_pair(automaND.input.size()-1, automaND.input.size());
+            
+            //stato di "attesa" dell'input (nuovo stato iniziale)
+            this->parallel_push_back(automaND, symb, automaND.input.size()+1, -1);
+            start_idx = automaND.input.size()-1;
+            //stato di destinazione dopo aver ricevuto l'input (nuovo stato finale)
+            this->parallel_push_back(automaND, ' ', -1, -1);
+            end_idx = automaND.input.size()-1;
         }
-
-        return make_pair(-1,-1);
-
+        return make_pair(start_idx, end_idx);
     }
 };
 
@@ -175,10 +246,34 @@ AST* create(string linearrep, set<char> alphabet, bool verbose) {
   }
 }
 
-void print_AFND(const AFND& automaND){
-        for(int i = 0; i < automaND.input.size(); i++){
-            cout<<"ID:"<<i<<"\t"<<automaND.input[i]<<"\t"<<automaND.dest1[i]<<"\t"<<automaND.dest2[i]<<endl;
+void printAFND(const AFND& automaND, ostream& os){
+    
+    //simboli dell'alfabeto (in posizione zero c'è epsilon che non viene considerato)
+    for(int i = 1; i < automaND.symbols.size(); i++){
+        os<<automaND.symbols[i]<<" ";
+    }
+    os<<endl;
+
+    //stato finale
+    os<<automaND.terminal_states.second<<endl;
+
+    //stampa per debug
+    /*for(int i = 0; i < automaND.input.size(); i++){
+        cout<<"ID:"<<i<<"\t"<<automaND.input[i]<<"\t"<<automaND.dest1[i]<<"\t"<<automaND.dest2[i]<<endl;
+    }*/
+
+    //stampa dell'automa nel formato corretto
+    for(int i = 0; i < automaND.input.size(); i++){
+        for(int j = 0; j < automaND.symbols.size() ; j++){
+            if(automaND.input[i] == automaND.symbols[j]){
+                os<<automaND.dest1[i];
+                if(automaND.dest2[i] != -1){
+                    os<<" "<<automaND.dest2[i];
+                }
+            }
+            os<<endl;
         }
+    }
 }
 
 int main(int argc, char** argv) {
@@ -212,20 +307,36 @@ int main(int argc, char** argv) {
                                 // espressioni regolari che includono epsilom
 
     AST *root = create(removeblank(line), symbols, verbose);
-    cout << root->visit() << endl; // Verifichiamo di aver internamente ricostruito l'AST
+    //cout << root->visit() << endl; // Verifichiamo di aver internamente ricostruito l'AST
                                     // in modo corretto
 
     //CONVERSIONE
     AFND automaND;
 
-    cout<<"Starting conversion...\n";                                
-    pair<int, int> terminal_states = root->convert_to_AFND(automaND);
-    cout<<"Initial state: "<<terminal_states.first<<endl;
-    cout<<"Final state: "<<terminal_states.second<<endl;
-    cout<<"Conversion completed!\n";
+    //conversione dell'alfabeto da set a stringa perchè più comodo nella fase di stampa
+    automaND.symbols = EPS;
+    for(char symb:symbols){
+        automaND.symbols += symb;
+    }
+
+    VERBOSE("Starting conversion...");                                
+    automaND.terminal_states = root->convert_to_AFND(automaND);
+    VERBOSE("Conversion completed!");
 
     //STAMPA DEL RISULTATO DELLA CONVERSIONE
-    cout<<"\nGenerated AFND: \n";
-    print_AFND(automaND);
+    if((verbose && argc == 4) || (!verbose && argc == 3)){
+        string file_name = argv[argc - 1];
+        VERBOSE("Trying to open file -- " + file_name);
+        ofstream f;
+        f.open(file_name);
+
+        VERBOSE("Saving on file '"<<file_name<<"' ...");
+        printAFND(automaND, f);
+        f.close();
+    }
+    else{
+        VERBOSE("No output file provided, will write result on default output stream");
+        printAFND(automaND, cout);
+    }
 
 }
