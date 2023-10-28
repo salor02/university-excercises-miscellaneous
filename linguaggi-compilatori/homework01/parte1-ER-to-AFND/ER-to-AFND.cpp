@@ -1,6 +1,4 @@
 /*
-TODO: commenti
-
 NB:
 1.  Specificare nome file di input come parametro da terminale
 2.  Se si vuole ottenere una stampa su file specificare nome file di output come ultimo parametro, altrimenti la stampa verrà
@@ -9,7 +7,7 @@ NB:
     per definire una destinazione non esistente viene salvato come valore -1
 4.  Rispetto al template di partenza ho aggiunto i metodi pubblici: parallel_push_back, parallel_set, convert_to_AFND. Quest'ultimo 
     è, ovviamente, una rielaborazione del metodo visit già implementato.
-5.  Rispetto al template di partenza ho aggiunto la procedura print_AFND
+5.  Rispetto al template di partenza ho aggiunto la procedura: print_AFND
 */
 
 #include <iostream>
@@ -28,8 +26,14 @@ set<char> operators = {'*','|','.'}; // Il punto indica la concatenazione
 
 const char EPS = '@'; //epsilon per indicare transizione con input non necessario
 
+//struttura dati per la rappresentazione dell'automa da stampare
 struct AFND{
-    string symbols;
+    string symbols; //simboli dell'alfabeto (include anche epsilon in posizione 0)
+    /*  i tre array di seguito sono stati implementati per realizzare la struttura dati proposta
+        a lezione. l'inidice dell'array corrisponde allo stato corrente, input corrisponde al simbolo in input
+        per avviare la transizione, dest1 e dest2 rappresentano le destinazioni delle transizioni. NB: dest1 non può mai 
+        essere vuoto eccetto per il caso dello stato finale. Per inizializzare una cella dell'array senza dare un valore valido
+        ho scelto di usare -1.*/
     vector<char> input;
     vector<int> dest1;
     vector<int> dest2;
@@ -85,14 +89,14 @@ public:
     }
 
     //procedura ausiliare per l'inserimento in coda nei vettori paralleli
-    void parallel_push_back(AFND& automaND, char input, int dest1, int dest2){
+    void parallel_push_back(AFND& automaND, const char input, const int dest1, const int dest2){
         automaND.input.push_back(input);
         automaND.dest1.push_back(dest1);
         automaND.dest2.push_back(dest2);
     }
 
     //procedura ausiliare per la modifica di un elemento all'interno dei vettori paralleli
-    void parallel_set(AFND& automaND, int idx, char input, int dest1, int dest2){
+    void parallel_set(AFND& automaND, const int idx, const char input, const int dest1, const int dest2){
         automaND.input[idx] = input;
         automaND.dest1[idx] = dest1;
         automaND.dest2[idx] = dest2;
@@ -248,7 +252,7 @@ AST* create(string linearrep, set<char> alphabet, bool verbose) {
 
 void printAFND(const AFND& automaND, ostream& os){
     
-    //simboli dell'alfabeto (in posizione zero c'è epsilon che non viene considerato)
+    //simboli dell'alfabeto (in posizione zero c'è epsilon che non viene stampato)
     for(int i = 1; i < automaND.symbols.size(); i++){
         os<<automaND.symbols[i]<<" ";
     }
