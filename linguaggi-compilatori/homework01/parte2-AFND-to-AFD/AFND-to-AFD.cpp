@@ -173,7 +173,7 @@ bool conversion(const AFND &automaND, AFD &automaD, const int initial_state){
         current_state = stateD_queue.front();
         
         //vengono analizzate tutte le transizioni di tutti gli elementi di current_state
-        for(int i = 0; i < automaD.alpha.size(); i++){
+        for(long unsigned int i = 0; i < automaD.alpha.size(); i++){
             discovered_state.clear();
             char current_input = automaD.alpha[i];
 
@@ -214,7 +214,7 @@ bool conversion(const AFND &automaND, AFD &automaD, const int initial_state){
     }
 
     //definizione stati finali dell'automa D
-    for(int i = 0; i < automaD.state_list.size(); i++){
+    for(long unsigned int i = 0; i < automaD.state_list.size(); i++){
         for(auto state:automaD.state_list[i]){
             /*se almeno uno degli elementi dello stato D appartiene al set degli stati finali di ND allora
             lo stato D diventerà uno stato finale di D*/
@@ -244,7 +244,7 @@ void printAFD(const AFD &automaD, ostream &os){
     os<<endl;
 
     //stampa delle transizioni
-    for(int state = 0; state < automaD.state_list.size(); state++){
+    for(long unsigned int state = 0; state < automaD.state_list.size(); state++){
         for(auto input:automaD.alpha){
 
             //blocco try catch utilizzato perche at() solleva un'eccezione se la chiave fornita non è a associata a nessun valore
