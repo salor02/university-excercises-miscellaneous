@@ -1,6 +1,9 @@
-str = "ciahsdfjhsdbfjabfjsbadlfjb"
+#Partendo da una stringa molto lunga di caratteri minuscoli scrivere una sequenza di
+#espressioni che tengano solo le consonanti e le renda maiuscole.
 
-res = map(lambda letter: letter.upper(), str)
-res = filter(lambda letter:letter not in ['A','E','I','O','U'], res)
+text = "ciao come va la vita io sto bene"
+
+#applica prima il filtro e poi il map (elimina anche gli spazi)
+res = map(lambda l: l.upper(), filter(lambda l:(l not in ['a','e','i','o','u',' ']), text))
 
 print(list(res))
