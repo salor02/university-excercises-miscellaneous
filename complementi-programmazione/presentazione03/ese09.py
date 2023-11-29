@@ -1,5 +1,6 @@
-#Trattare l’attributo “malato” come descrittore (che considera anche l’attributo
-#“spavaldo”).
+#Provare a scrivere un decoratore che si comporti come @property.
+#(limitarsi alle funzionalità get per accedere al dato tralasciando le funzionalità set e
+#delete)
 
 class MalatoDesc:
     def __init__(self):
@@ -17,6 +18,13 @@ class MalatoDesc:
     def __delete__(self, instance):
         pass
 
+class MyProperty:
+    def __init__(self, getter):
+        self.getter = getter
+
+    def __get__(self, instance, owner):
+        return self.getter(instance)
+
 class Cane:
     count = 0
     malato = MalatoDesc()
@@ -31,13 +39,9 @@ class Cane:
         #Cane.count += 1 #equivalente
         self.__class__.count += 1
     
-    @property
+    @MyProperty
     def spavaldo(self):
         return self.__spavaldo_
-
-    @spavaldo.setter
-    def spavaldo(self, new_val):
-        self.__spavaldo_ = new_val
 
     def whoami(self):
         print("Ciao! Sono " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
@@ -45,7 +49,7 @@ class Cane:
             print("Ho anche la coda!")
         if(self.malato):
             print("Sono anche malato purtroppo!")
-        if(self.__spavaldo_):
+        if(self.spavaldo):
             print("Sono anche spavaldo LESGOO")
 
     def abbaia(self):
