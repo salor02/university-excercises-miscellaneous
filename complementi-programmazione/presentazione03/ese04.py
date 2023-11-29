@@ -1,3 +1,8 @@
+#Modificare i getters e setters usando @property
+#
+#Bis: Definire un comportamento speciale per l’attributo malato:
+#ritorno il valore di malato MA se spavaldo è True ritorna sempre False
+
 class Cane:
     count = 0
 
@@ -30,7 +35,7 @@ class Cane:
         self.__spavaldo_ = new_val
 
     def whoami(self):
-        print("Ciao! Mi chiamo " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
+        print("Ciao! Sono " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
         if(self.coda):
             print("Ho anche la coda!")
         if(self.__malato_):
@@ -42,10 +47,10 @@ class Cane:
         print("WOOF WOOF")
 
     def cammina(self):
-        print("STO CAMMINANDO WUAGLIU")
+        print("STO CAMMINANDO")
 
     def corri(self):
-        print("STO CURREN WUAGLIU")
+        print("STO CORRENDO")
 
     @classmethod
     def instance_size(cls):

@@ -1,3 +1,9 @@
+#definire un comportamento per l’operatore + tra due Cane. Per esempio nasce un
+#cucciolo.
+#
+#Prevedere comportamenti diversi in base agli attributi età e sesso dei Cane
+#coinvolti.
+
 class Cane:
     count = 0
 
@@ -16,7 +22,7 @@ class Cane:
         raise Exception("Due cani dello stesso sesso non possono fare un cucciolo!")
 
     def whoami(self):
-        print("Ciao! Mi chiamo " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
+        print("Ciao! Sono " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
         if(self.coda):
             print("Ho anche la coda!")
 
@@ -24,10 +30,10 @@ class Cane:
         print("WOOF WOOF")
 
     def cammina(self):
-        print("STO CAMMINANDO WUAGLIU")
+        print("STO CAMMINANDO")
 
     def corri(self):
-        print("STO CURREN WUAGLIU")
+        print("STO CORRENDO")
 
     @classmethod
     def instance_size(cls):

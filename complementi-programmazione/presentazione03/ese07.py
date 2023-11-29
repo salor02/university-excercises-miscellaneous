@@ -1,3 +1,7 @@
+#Rendere Animale una classe astratta.
+#Definire un metodo astratto “fai_verso” (al posto di miagola/abbaia) e implementarlo
+#nelle classi figlie.
+
 from abc import ABC, abstractmethod
 
 class Animale(ABC):
@@ -12,15 +16,15 @@ class Animale(ABC):
         Animale.count += 1
 
     def whoami(self):
-        print("Ciao! Mi chiamo " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
+        print("Ciao! Sono " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
         if(self.coda):
             print("Ho anche la coda!")
 
     def cammina(self):
-        print("STO CAMMINANDO WUAGLIU")
+        print("STO CAMMINANDO")
 
     def corri(self):
-        print("STO CURREN WUAGLIU")
+        print("STO CORRENDO")
 
     @abstractmethod
     def fai_verso(self):

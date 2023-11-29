@@ -1,3 +1,8 @@
+#Aggiungere due attributi privati a Cane:
+#- malato (default False)
+#- spavaldo (default False)
+#Aggiungere dei getters e setters per accederli e modificarli (nel modo classico)
+
 class Cane:
     count = 0
 
@@ -24,7 +29,7 @@ class Cane:
         self.__spavaldo_ = new_val
 
     def whoami(self):
-        print("Ciao! Mi chiamo " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
+        print("Ciao! Sono " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
         if(self.coda):
             print("Ho anche la coda!")
         if(self.__malato_):
@@ -36,10 +41,10 @@ class Cane:
         print("WOOF WOOF")
 
     def cammina(self):
-        print("STO CAMMINANDO WUAGLIU")
+        print("STO CAMMINANDO")
 
     def corri(self):
-        print("STO CURREN WUAGLIU")
+        print("STO CORRENDO")
 
     @classmethod
     def instance_size(cls):

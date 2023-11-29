@@ -1,3 +1,7 @@
+#Fare in modo che la classe Cane erediti da una classe Animale
+#Creare anche una classe Gatto che eredita da Animale
+#Capire quali metodi mettere nelle classe Animale e quali in Cane/Gatto
+
 class Animale:
     count = 0
 
@@ -10,15 +14,15 @@ class Animale:
         Animale.count += 1
 
     def whoami(self):
-        print("Ciao! Mi chiamo " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
+        print("Ciao! Sono " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
         if(self.coda):
             print("Ho anche la coda!")
 
     def cammina(self):
-        print("STO CAMMINANDO WUAGLIU")
+        print("STO CAMMINANDO")
 
     def corri(self):
-        print("STO CURREN WUAGLIU")
+        print("STO CORRENDO")
 
     @classmethod
     def instance_size(cls):
