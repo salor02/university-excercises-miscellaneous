@@ -1,4 +1,4 @@
-class Cane:
+class Gatto:
     
     def __init__(self, sesso, razza, zampe = 4, coda = True, eta = 0):
         self.sesso = sesso
@@ -12,18 +12,22 @@ class Cane:
         if(self.coda):
             print("Ho anche la coda!")
 
-    def abbaia(self):
-        print("WOOF WOOF")
+    def miagola(self):
+        print("MIAOO MIAOO")
 
     def cammina(self):
-        print("STO CAMMINANDO")
+        print("STO CAMMINANDO MIAOO")
 
     def corri(self):
         print("STO CORRENDO")
 
     @classmethod
-    def stessoLuogo(cls, cane1, cane2):
-        if cane1.razza == cane2.razza:
+    def stessoLuogo(cls, gatto1, gatto2):
+        if gatto1.razza == gatto2.razza:
             return True
         else:
             return False
+        
+if __name__ == '__main__':
+    tom = Gatto('M','siamese')
+    tom.miagola()

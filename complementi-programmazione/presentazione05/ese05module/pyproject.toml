@@ -1,0 +1,12 @@
+[project]
+name = "animals"
+version = "1.0"
+authors = [
+  {name = "Pradyun Gedam", email = "pradyun@example.com"},
+  {name = "Tzu-Ping Chung", email = "tzu-ping@example.com"},
+  {name = "Another person"},
+  {email = "different.person@example.com"},
+]
+maintainers = [
+  {name = "Brett Cannon", email = "brett@example.com"}
+]

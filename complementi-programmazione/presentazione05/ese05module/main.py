@@ -1,7 +1,5 @@
-#Creare un package Animali che contenga i moduli creati in precedenza.
-#Fare in modo che con
-#from Animali import *
-#vengano importati tutti i moduli
+#Creare una build del progetto.
+#Personalizzare a piacere la build
 
 from Animali import *
 

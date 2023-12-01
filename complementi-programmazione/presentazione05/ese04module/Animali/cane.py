@@ -8,7 +8,7 @@ class Cane:
         self.razza = razza
 
     def whoami(self):
-        print("Ciao! Mi chiamo " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
+        print("Ciao! Sono " + self.sesso + " e ho " + str(self.zampe) + " zampe, inoltre ho " + str(self.eta) + " anni")
         if(self.coda):
             print("Ho anche la coda!")
 
@@ -16,10 +16,10 @@ class Cane:
         print("WOOF WOOF")
 
     def cammina(self):
-        print("STO CAMMINANDO WUAGLIU")
+        print("STO CAMMINANDO")
 
     def corri(self):
-        print("STO CURREN WUAGLIU")
+        print("STO CORRENDO")
 
     @classmethod
     def stessoLuogo(cls, cane1, cane2):
@@ -27,3 +27,7 @@ class Cane:
             return True
         else:
             return False
+        
+if __name__ == '__main__':
+    pluto = Cane('M','dalmata')
+    pluto.abbaia()

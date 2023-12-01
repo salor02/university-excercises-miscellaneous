@@ -1,0 +1,8 @@
+pyproject.toml
+Animali/__init__.py
+Animali/cane.py
+Animali/gatto.py
+animals.egg-info/PKG-INFO
+animals.egg-info/SOURCES.txt
+animals.egg-info/dependency_links.txt
+animals.egg-info/top_level.txt

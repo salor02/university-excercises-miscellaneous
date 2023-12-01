@@ -27,3 +27,7 @@ class Cane:
             return True
         else:
             return False
+        
+if __name__ == '__main__':
+    pluto = Cane('M','dalmata')
+    pluto.abbaia()
