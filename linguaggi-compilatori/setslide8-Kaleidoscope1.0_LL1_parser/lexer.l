@@ -1,1 +1,1 @@
-lexer_kaleidoscope1.l
+lexer_kaleidoscope2.l
