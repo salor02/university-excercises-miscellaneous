@@ -1,0 +1,5 @@
+Utilizzo:
+1. Installare la versione desiderata di llvm-clang tramite './llvm-clang-installer.sh <version>'
+2. Impostare i link simbolici per puntare alla versione installata tramite './llvm-clang-version-config.sh <version> <priority>' dove version deve corrispondere con la versione
+   installata e priority è un numero che indica la priorità rispettpo ad altre alternative impostate
+3. Per controllare se tutto è andato a buon fine digitare 'update-alternatives --display clang' e 'update-alternatives --display llvm-config' 
