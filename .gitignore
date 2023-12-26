@@ -5,4 +5,12 @@
 
 #linguaggi e compilatori
 linguaggi-compilatori/**/*.ll
+!linguaggi-compilatori/**/scanner.ll
 linguaggi-compilatori/**/*.s
+linguaggi-compilatori/**/*.output
+linguaggi-compilatori/**/parser.hpp
+linguaggi-compilatori/**/parser.cpp
+linguaggi-compilatori/**/scanner.cpp
+linguaggi-compilatori/**/test.k
+linguaggi-compilatori/**/kcomp
+linguaggi-compilatori/bin
