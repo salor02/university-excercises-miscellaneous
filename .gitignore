@@ -1,3 +1,8 @@
 **/a.out
 ./lib
 .vscode
+*.o
+
+#linguaggi e compilatori
+linguaggi-compilatori/**/*.ll
+linguaggi-compilatori/**/*.s
