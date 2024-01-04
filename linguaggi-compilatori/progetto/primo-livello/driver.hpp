@@ -32,23 +32,22 @@ using namespace llvm;
 YY_DECL;
 
 // Classe che organizza e gestisce il processo di compilazione
-class driver
-{
+class driver{
 public:
-  driver();
-  std::map<std::string, AllocaInst*> NamedValues; // Tabella associativa in cui ogni 
-            // chiave x è una variabile e il cui corrispondente valore è un'istruzione 
-            // che alloca uno spazio di memoria della dimensione necessaria per 
-            // memorizzare un variabile del tipo di x (nel nostro caso solo double)
-  RootAST* root;      // A fine parsing "punta" alla radice dell'AST
-  int parse (const std::string& f);
-  std::string file;
-  bool trace_parsing; // Abilita le tracce di debug el parser
-  void scan_begin (); // Implementata nello scanner
-  void scan_end ();   // Implementata nello scanner
-  bool trace_scanning;// Abilita le tracce di debug nello scanner
-  yy::location location; // Utillizata dallo scannar per localizzare i token
-  void codegen();
+    driver();
+    std::map<std::string, AllocaInst*> NamedValues; // Tabella associativa in cui ogni 
+                // chiave x è una variabile e il cui corrispondente valore è un'istruzione 
+                // che alloca uno spazio di memoria della dimensione necessaria per 
+                // memorizzare un variabile del tipo di x (nel nostro caso solo double)
+    RootAST* root;      // A fine parsing "punta" alla radice dell'AST
+    int parse (const std::string& f);
+    std::string file;
+    bool trace_parsing; // Abilita le tracce di debug el parser
+    void scan_begin (); // Implementata nello scanner
+    void scan_end ();   // Implementata nello scanner
+    bool trace_scanning;// Abilita le tracce di debug nello scanner
+    yy::location location; // Utillizata dallo scannar per localizzare i token
+    void codegen();
 };
 
 typedef std::variant<std::string,double> lexval;
@@ -58,30 +57,30 @@ const lexval NONE = 0.0;
 // gli elementi del programma
 class RootAST {
 public:
-  virtual ~RootAST() {};
-  virtual lexval getLexVal() const {return NONE;};
-  virtual Value *codegen(driver& drv) { return nullptr; };
+    virtual ~RootAST() {};
+    virtual lexval getLexVal() const {return NONE;};
+    virtual Value *codegen(driver& drv) { return nullptr; };
 };
 
-// Classe che rappresenta la sequenza di statement
+/// SeqAST - Classe che rappresenta la sequenza di statement
 class SeqAST : public RootAST {
 private:
-  RootAST* first;
-  RootAST* continuation;
+    RootAST* first;
+    RootAST* continuation;
 
 public:
-  SeqAST(RootAST* first, RootAST* continuation);
-  Value *codegen(driver& drv) override;
+    SeqAST(RootAST* first, RootAST* continuation);
+    Value *codegen(driver& drv) override;
 };
 
 /// StmtAST - Classe per la rappresentazione degli statement all'interno dei blocchi
 class StmtAST : public RootAST {
 private:
-  RootAST* stmt;
+    RootAST* stmt;
 
 public:
-  StmtAST(RootAST* stmt);
-  Value *codegen(driver& drv) override;
+    StmtAST(RootAST* stmt);
+    Value *codegen(driver& drv) override;
 };
 
 /// ExprAST - Classe base per tutti i nodi espressione
@@ -90,101 +89,101 @@ class ExprAST : public RootAST {};
 /// NumberExprAST - Classe per la rappresentazione di costanti numeriche
 class NumberExprAST : public ExprAST {
 private:
-  double Val;
+    double Val;
 
 public:
-  NumberExprAST(double Val);
-  lexval getLexVal() const override;
-  Value *codegen(driver& drv) override;
+    NumberExprAST(double Val);
+    lexval getLexVal() const override;
+    Value *codegen(driver& drv) override;
 };
 
 /// VariableExprAST - Classe per la rappresentazione di riferimenti a variabili
 class VariableExprAST : public ExprAST {
 private:
-  std::string Name;
+    std::string Name;
   
 public:
-  VariableExprAST(const std::string &Name);
-  lexval getLexVal() const override;
-  Value *codegen(driver& drv) override;
+    VariableExprAST(const std::string &Name);
+    lexval getLexVal() const override;
+    Value *codegen(driver& drv) override;
 };
 
 /// GlobalVarAST - Classe per la rappresentazione delle variabili globali
 class GlobalVarAST : public RootAST {
-    private:
-        std::string Name;
-    
-    public:
-        GlobalVarAST(const std::string& Name);
-        lexval getLexVal() const override;
-        Value *codegen(driver &drv) override;
+private:
+    std::string Name;
+
+public:
+    GlobalVarAST(const std::string& Name);
+    lexval getLexVal() const override;
+    Value *codegen(driver &drv) override;
 };
 
 /// BinaryExprAST - Classe per la rappresentazione di operatori binari
 class BinaryExprAST : public ExprAST {
 private:
-  char Op;
-  ExprAST* LHS;
-  ExprAST* RHS;
+    char Op;
+    ExprAST* LHS;
+    ExprAST* RHS;
 
 public:
-  BinaryExprAST(char Op, ExprAST* LHS, ExprAST* RHS);
-  Value *codegen(driver& drv) override;
+    BinaryExprAST(char Op, ExprAST* LHS, ExprAST* RHS);
+    Value *codegen(driver& drv) override;
 };
 
 /// CallExprAST - Classe per la rappresentazione di chiamate di funzione
 class CallExprAST : public ExprAST {
 private:
-  std::string Callee;
-  std::vector<ExprAST*> Args;  // ASTs per la valutazione degli argomenti
+    std::string Callee;
+    std::vector<ExprAST*> Args;
 
 public:
-  CallExprAST(std::string Callee, std::vector<ExprAST*> Args);
-  lexval getLexVal() const override;
-  Value *codegen(driver& drv) override;
+    CallExprAST(std::string Callee, std::vector<ExprAST*> Args);
+    lexval getLexVal() const override;
+    Value *codegen(driver& drv) override;
 };
 
-/// IfExprAST
+/// IfExprAST - Classe per la rappresentazione dell'expression if
 class IfExprAST : public ExprAST {
 private:
-  ExprAST* Cond;
-  ExprAST* TrueExp;
-  ExprAST* FalseExp;
+    ExprAST* Cond;
+    ExprAST* TrueExp;
+    ExprAST* FalseExp;
 public:
-  IfExprAST(ExprAST* Cond, ExprAST* TrueExp, ExprAST* FalseExp);
-  Value *codegen(driver& drv) override;
+    IfExprAST(ExprAST* Cond, ExprAST* TrueExp, ExprAST* FalseExp);
+    Value *codegen(driver& drv) override;
 };
 
-/// BlockExprAST
+/// BlockExprAST - Classe per la rappresentazione dei blocchi (istruzioni delimitate da {})
 class BlockExprAST : public ExprAST {
 private:
-  std::vector<VarBindingAST*> Def;
-  std::vector<StmtAST*> Stmts;
+    std::vector<VarBindingAST*> Def;
+    std::vector<StmtAST*> Stmts;
 public:
-  BlockExprAST(std::vector<VarBindingAST*> Def, std::vector<StmtAST*> Stmts);
-  Value *codegen(driver& drv) override;
+    BlockExprAST(std::vector<VarBindingAST*> Def, std::vector<StmtAST*> Stmts);
+    Value *codegen(driver& drv) override;
 }; 
 
 /// AssignmentAST - Classe per la gestione degli assegnamenti
 class AssignmentAST: public RootAST {
 private:
-  const std::string Name;
-  ExprAST* Val;
+    const std::string Name;
+    ExprAST* Val;
 public:
-  AssignmentAST(const std::string Name, ExprAST* Val);
-  Value *codegen(driver& drv) override;
-  const std::string& getName() const;
+    AssignmentAST(const std::string Name, ExprAST* Val);
+    Value *codegen(driver& drv) override;
+    const std::string& getName() const;
 };
 
-/// VarBindingAST
+/// VarBindingAST - Classe per la definizione di variabili
 class VarBindingAST: public RootAST {
 private:
-  const std::string Name;
-  ExprAST* Val;
+    const std::string Name;
+    ExprAST* Val;
 public:
-  VarBindingAST(const std::string Name, ExprAST* Val);
-  AllocaInst *codegen(driver& drv) override;
-  const std::string& getName() const;
+    VarBindingAST(const std::string Name, ExprAST* Val);
+    AllocaInst *codegen(driver& drv) override;
+    const std::string& getName() const;
 };
 
 /// PrototypeAST - Classe per la rappresentazione dei prototipi di funzione
@@ -192,28 +191,28 @@ public:
 /// perché unico)
 class PrototypeAST : public RootAST {
 private:
-  std::string Name;
-  std::vector<std::string> Args;
-  bool emitcode;
+    std::string Name;
+    std::vector<std::string> Args;
+    bool emitcode;
 
 public:
-  PrototypeAST(std::string Name, std::vector<std::string> Args);
-  const std::vector<std::string> &getArgs() const;
-  lexval getLexVal() const override;
-  Function *codegen(driver& drv) override;
-  void noemit();
+    PrototypeAST(std::string Name, std::vector<std::string> Args);
+    const std::vector<std::string> &getArgs() const;
+    lexval getLexVal() const override;
+    Function *codegen(driver& drv) override;
+    void noemit();
 };
 
 /// FunctionAST - Classe che rappresenta la definizione di una funzione
 class FunctionAST : public RootAST {
 private:
-  PrototypeAST* Proto;
-  BlockExprAST* Body;
-  bool external;
+    PrototypeAST* Proto;
+    BlockExprAST* Body;
+    bool external;
   
 public:
-  FunctionAST(PrototypeAST* Proto, BlockExprAST* Body);
-  Function *codegen(driver& drv) override;
+    FunctionAST(PrototypeAST* Proto, BlockExprAST* Body);
+    Function *codegen(driver& drv) override;
 };
 
 #endif // ! DRIVER_HH
