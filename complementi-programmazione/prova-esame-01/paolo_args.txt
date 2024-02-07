@@ -1,0 +1,3 @@
+0	-	Accepted
+1	-	Waiting
+2	-	Waiting
