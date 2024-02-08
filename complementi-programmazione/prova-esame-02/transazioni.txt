@@ -1,0 +1,8 @@
+Utente: giig
+[VERSAMENTO]	 2020-11-12 00:00:00 : €546
+[PRELIEVO]	 2019-05-11 00:00:00 : €-234
+Utente: gipo
+[VERSAMENTO]	 2011-11-11 00:00:00 : €345
+Utente: lollo
+[PRELIEVO]	 2024-01-01 00:00:00 : €-123
+Utente: pablo
