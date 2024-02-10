@@ -3,6 +3,7 @@ class Menu:
         self.name = name
         self.ops = ops
     
+    #display delle varie opzioni disponibili
     def display(self):
         print('*'*40+'\n' + self.name)
         for op in self.ops.items():
@@ -10,6 +11,7 @@ class Menu:
         print('Digitare 0 per uscire')
         print('*'*40)
     
+    #prompt per inserire la scelta e successiva esecuzione dell'azione associata
     def select(self):
         try:
             choice = int(input("Selezionare opzione desiderata: "))
