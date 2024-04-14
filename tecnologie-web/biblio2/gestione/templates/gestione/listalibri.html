@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block head %} {% endblock %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block content %}
+
+    <center>
+    <h1>{{title}}</h1>
+
+    {% if listalibri.count > 0 %}
+        <p> Ci sono ben {{listalibri.count}} libri in questa biblioteca! </p>
+        <table>
+        {% for l in listalibri %}
+
+            <tr> <td> {{ l }} </td> </tr>
+            <tr>
+                <td> <a href="/gestione/prestito/{{l.titolo}}/{{l.autore}}"> Prestito </a> </td>
+                <td> <a href="/gestione/restituzione/{{l.titolo}}/{{l.autore}}"> Restituzione </a> </td>
+            </tr>
+
+        {% endfor %}
+        </table>
+    {% else %}
+        <p>Non ci sono libri!</p>
+    {% endif %}
+
+    </center>
+
+{% endblock %}

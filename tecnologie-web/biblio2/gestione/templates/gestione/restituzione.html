@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block head %} {% endblock %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block content %}
+
+    <center>
+    <h1>{{title}}</h1>
+
+    <table>
+        {% if listacopie %}
+            {% for copia in listacopie %}
+                <tr> 
+                    <td> {{copia}} </td>
+                    <td> <a href="/gestione/restituzione/{{copia.id}}"> Seleziona </a> </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <h2> Copia correttamente restituita! </h2>
+            {% if scaduto %}
+                <h3> ...la prossima volta riportalo prima però </h3>
+            {% endif %}
+        {% endif %}
+
+    </table>
+
+    <a href="{% url 'gestione:listalibri' %}"> Torna alla lista libri </a>
+
+    </center>
+
+{% endblock %}
