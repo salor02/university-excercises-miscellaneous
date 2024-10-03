@@ -14,3 +14,6 @@ linguaggi-compilatori/**/scanner.cpp
 linguaggi-compilatori/**/test.k
 linguaggi-compilatori/**/kcomp
 linguaggi-compilatori/bin
+
+#PAAV
+platforms-algorithms-autonomous-vehicles/**/build/
