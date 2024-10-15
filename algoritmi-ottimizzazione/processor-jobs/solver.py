@@ -1,7 +1,18 @@
+"""
+-   fare alcuni algoritmi costruttivi per risolvere il problema dello scheduling dei jobs
+-   fare una routine di controllo che controlli che la soluzione sia giusta (tipo che tutti i jobs siano stati
+    schedulati)
+-   preparare le istanze suddividendole per 2 tipi (ad esempio 1 tipo per jobs generati casualmente e 1 tipo per molti jobs
+    piccoli e pochi grandi), per diverse tuple <Njobs, Nproc> si generano 20 istante per ognuno dei 2 tipi
+-   provare gli algoritmi su tutte le istanze per avere delle soluzioni e controllare tutte le soluzioni con la routine
+    di controllo
+-   provando gli algoritmi prendere anche delle metriche tipo il tempo impiegato e fare le statistiche
+-   una volta fatto tutto implementare local search per cercare il minimo"""
+
 import random
 
 PROCESSORS_NUM = 4
-JOBS_NUM = 10000
+JOBS_NUM = 10
 
 def jobs_gen(seed):
     instance = random.Random(seed)
@@ -17,13 +28,22 @@ def sequential_scheduling(jobs_time):
 
     return processors_jobs
 
-def time_priority_scheduling(jobs_time):
+def time_priority_scheduling(jobs_time, k=1):
     processors_jobs = [list() for _ in range(PROCESSORS_NUM)]
     processors_time = [0 for x in range(PROCESSORS_NUM)]
     
+    #da cambiare perche cosi fa schifo
+    jobs = dict()
+    for idx, job in enumerate(jobs_time):
+        jobs[idx] = job
+
     for idx,time in enumerate(jobs_time):
         assigned_processor = processors_time.index(min(processors_time))
-        processors_jobs[assigned_processor].append(idx)
+
+        selected_idx = random.randint(idx, idx+k-1)
+        selected_job = jobs_time[selected_idx]
+
+        processors_jobs[assigned_processor].append(selected_idx)
         processors_time[assigned_processor] += time
 
     return processors_jobs
@@ -42,7 +62,7 @@ def get_total_computation_time(processors_jobs):
 def sort_jobs(jobs_time, scheduling_type, reverse=False):
     jobs_time.sort(reverse=reverse)
     if scheduling_type == 'time_priority':
-        processors_jobs = time_priority_scheduling(jobs_time)
+        processors_jobs = time_priority_scheduling(jobs_time,2)
     elif scheduling_type == 'sequential':
         processors_jobs = sequential_scheduling(jobs_time)
     return get_total_computation_time(processors_jobs)
@@ -56,7 +76,7 @@ def randomize_jobs(jobs_time, scheduling_type):
     
     return get_total_computation_time(processors_jobs)
 
-def Krandom_scheduling(jobs_time, k, reverse=False):
+def get_random_k_min_jobs(jobs_time, k, reverse=False):
     jobs_time.sort(reverse=reverse)
 
 if __name__ == '__main__':
