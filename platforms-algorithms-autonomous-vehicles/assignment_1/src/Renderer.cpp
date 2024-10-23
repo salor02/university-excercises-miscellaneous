@@ -31,6 +31,12 @@ namespace lidar_obstacle_detection
     
   }
 
+  void Renderer::addLine(pcl::PointXYZ a, pcl::PointXYZ b, int id){
+
+    viewer_->addLine (a, b, 1.0, 1.0, 0.0, "line2" + std::to_string(id));
+    
+  }
+
 
   void Renderer::removeShape(int id){
     viewer_->removeShape("c_"+std::to_string(id),0);

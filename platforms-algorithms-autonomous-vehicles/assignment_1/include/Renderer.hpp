@@ -64,6 +64,8 @@ namespace lidar_obstacle_detection
 
     void ClearViewer();
 
+    void addLine(pcl::PointXYZ a, pcl::PointXYZ b, int id);
+
     void addText(float centroid_x, float centroid_y, float centroid_z,const std::string& id);
 
     void RenderPointCloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud,
