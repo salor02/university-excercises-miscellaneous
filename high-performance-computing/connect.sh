@@ -7,7 +7,7 @@ user=301414
 
 if [ "$1" = "tunnel" ]; then
     remote_host='localhost'
-    autossh -f -N -L 22704:"$remote_host":22704 student@wks-marongiu2.mat.unimo.it -v
+    ssh -f -N -L "$port":"$remote_host":"$port" student@wks-marongiu2.mat.unimo.it
 else
     remote_host='elgamal.mat.unimo.it'
 fi
