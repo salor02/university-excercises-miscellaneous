@@ -18,6 +18,7 @@ linguaggi-compilatori/bin
 #PAAV
 platforms-algorithms-autonomous-vehicles/**/build/
 platforms-algorithms-autonomous-vehicles/**/dataset*/*
+platforms-algorithms-autonomous-vehicles/**/*.bag
 
 #HPC
 high-performance-computing/board4/**
