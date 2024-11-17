@@ -14,7 +14,7 @@
 * TODO
 * Define the proper number of particles
 */
-#define NPARTICLES 0
+#define NPARTICLES 1000
 #define circleID "circle_id"
 #define reflectorID "reflector_id"
 
@@ -22,7 +22,8 @@ using namespace std;
 using namespace lidar_obstacle_detection;
 
 
-Map map_mille;  
+Map map_mille;
+std::vector<LandmarkObs> mapLandmark;
 ParticleFilter pf;
 bool init_odom=false;
 Renderer renderer;
@@ -34,9 +35,9 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_particles(new pcl::PointCloud<pcl::Poi
 * TODO
 * Define the proper noise values
 */
-double sigma_init [3] = {0, 0, 0};  //[x,y,theta] initialization noise. 
-double sigma_pos [3]  = {0.05, 0.05, 0.05}; //[x,y,theta] movement noise. Try values between [0.5 and 0.01]
-double sigma_landmark [2] = {0.4, 0.4};     //[x,y] sensor measurement noise. Try values between [0.5 and 0.1]
+double sigma_init [3] = {0.05, 0.05, 0.05};  //[x,y,theta] initialization noise. 
+double sigma_pos [3]  = {0.03, 0.08, 0.1}; //[x,y,theta] movement noise. Try values between [0.5 and 0.01]
+double sigma_landmark [2] = {0.15, 0.15};     //[x,y] sensor measurement noise. Try values between [0.5 and 0.1]
 std::vector<Color> colors = {Color(1,0,0), Color(1,1,0), Color(0,0,1), Color(1,0,1), Color(0,1,1)};
 control_s odom;
 
@@ -113,9 +114,6 @@ void PointCloudCb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
     for(int i=0;i<nReflectors;i++)
         renderer.updateShape(reflectorID+std::to_string(i),0.0);
 
-    // Update the observations and shows the reflectors (this can be improved, this line can be executed after computing the best particle)
-    updateViewerReflector(reflectorCenter);
-
     // Receive noisy observation data 
     vector<LandmarkObs> noisy_observations;
     for(int i = 0; i < reflectorCenter.size(); i++)
@@ -127,7 +125,7 @@ void PointCloudCb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
     }
 
     // Update the weights of the particle 
-    pf.updateWeights(sigma_landmark, noisy_observations, map_mille);
+    pf.updateWeights(sigma_landmark, noisy_observations, mapLandmark, sigma_pos);
 
     // Resample the particles
     pf.resample();
@@ -143,6 +141,9 @@ void PointCloudCb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg){
         }
     }
     best_particles.push_back(best_particle);
+
+    // Update the observations and shows the reflectors
+    updateViewerReflector(reflectorCenter);
 
     // Show the particles in the map
     showPCstatus(cloud_particles,particles);
@@ -178,6 +179,10 @@ int main(int argc,char **argv)
         cout << "Error: Could not open map file" << endl;
         return -1;
     } 
+
+    for(int j=0;j<map_mille.landmark_list.size();j++){
+        mapLandmark.push_back(LandmarkObs{map_mille.landmark_list[j].id_i,map_mille.landmark_list[j].x_f,map_mille.landmark_list[j].y_f});
+    }
  
     // Reduce the number of points in the map point cloud (for improving the performance of the rendering)
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered_map (new pcl::PointCloud<pcl::PointXYZ>);
