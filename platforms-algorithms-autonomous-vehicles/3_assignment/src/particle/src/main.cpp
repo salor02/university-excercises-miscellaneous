@@ -10,12 +10,17 @@
 #include "Renderer.hpp"
 #include <pcl/filters/voxel_grid.h>
 #include <particle/helper_cloud.h>
+
+/*
+    Ottimizzazione del codice: il calcolo dei landmark veniva effettuato ogni volta che veniva eseguito
+    l'aggiornamento dei pesi. Ho ottimizzato questo procedimento calcolando i landmark una singola volta e 
+    passando alla funzione di aggiornamento dei pesi sempre lo stesso vector mapLandmark.*/
 /*
 * TODO
 * Define the proper number of particles
 */
 #define NPARTICLES 500
-#define INIT_TYPE 0 //0: from GPS, 1: random
+#define INIT_TYPE 1 //0: from GPS, 1: random
 #define circleID "circle_id"
 #define reflectorID "reflector_id"
 
