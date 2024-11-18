@@ -14,7 +14,8 @@
 * TODO
 * Define the proper number of particles
 */
-#define NPARTICLES 1000
+#define NPARTICLES 500
+#define INIT_TYPE 0 //0: from GPS, 1: random
 #define circleID "circle_id"
 #define reflectorID "reflector_id"
 
@@ -36,8 +37,8 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_particles(new pcl::PointCloud<pcl::Poi
 * Define the proper noise values
 */
 double sigma_init [3] = {0.05, 0.05, 0.05};  //[x,y,theta] initialization noise. 
-double sigma_pos [3]  = {0.03, 0.08, 0.1}; //[x,y,theta] movement noise. Try values between [0.5 and 0.01]
-double sigma_landmark [2] = {0.15, 0.15};     //[x,y] sensor measurement noise. Try values between [0.5 and 0.1]
+double sigma_pos [3]  = {0.05, 0.05, 0.1}; //[x,y,theta] movement noise. Try values between [0.5 and 0.01]
+double sigma_landmark [2] = {0.4, 0.4};     //[x,y] sensor measurement noise. Try values between [0.5 and 0.1]
 std::vector<Color> colors = {Color(1,0,0), Color(1,1,0), Color(0,0,1), Color(1,0,1), Color(0,1,1)};
 control_s odom;
 
@@ -213,8 +214,14 @@ int main(int argc,char **argv)
     best_particles.push_back(p);
     
     // Init the particle filter
+    #if INIT_TYPE == 0
     pf.init(GPS_x, GPS_y, GPS_theta, sigma_init, NPARTICLES);
-    //pf.init_random(sigma_init,NPARTICLES);
+    #elif INIT_TYPE == 1
+    //utile per generazione di particelle random nella mappa
+    pcl::PointXYZ min_pt, max_pt;
+    pcl::getMinMax3D(*cloudReflectors, min_pt, max_pt);
+    pf.init_random(NPARTICLES, std::pair<float, float>(min_pt.x, min_pt.y), std::pair<float, float>(max_pt.x, max_pt.y));
+    #endif
 
     // Render all the particles
     for(int i=0;i<NPARTICLES;i++){

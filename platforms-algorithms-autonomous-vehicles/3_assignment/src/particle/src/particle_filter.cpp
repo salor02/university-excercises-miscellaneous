@@ -9,9 +9,9 @@
 #include <iterator>
 #include "particle/particle_filter.h"
 
-//0: wheel, 1: stratified
-#define RESAMPLE_TYPE 1
-#define WEIGHTED_EUCLIDEAN
+//0: wheel, 1: stratified, 2: systematic
+#define RESAMPLE_TYPE 0
+//#define WEIGHTED_EUCLIDEAN
 
 using namespace std;
 
@@ -24,11 +24,11 @@ static  default_random_engine gen;
 *  std - noise that might be added to the position
 *  nParticles - number of particles
 */
-void ParticleFilter::init_random(double std[],int nParticles) {
+void ParticleFilter::init_random(int nParticles, std::pair<float, float> min_pt, std::pair<float, float> max_pt) {
     num_particles = nParticles;
-    normal_distribution<double> dist_x(-std[0], std[0]); //random value between [-noise.x,+noise.x]
-    normal_distribution<double> dist_y(-std[1], std[1]);
-    normal_distribution<double> dist_theta(-std[2], std[2]);
+    uniform_real_distribution<double> dist_x(min_pt.first, max_pt.first);
+    uniform_real_distribution<double> dist_y(min_pt.second, max_pt.second);
+    normal_distribution<double> dist_theta(0, 2 * 3.14159);
 
     for(int i=0; i < num_particles; i++){
         particles.push_back(Particle(dist_x(gen), dist_y(gen), dist_theta(gen))); 
@@ -229,7 +229,7 @@ void ParticleFilter::resample() {
     }
 
     //stratified resampling
-    #elif RESAMPLE_TYPE == 1
+    #else
     //calcolo della distribuzione cumulativa dei pesi
     std::vector<double> cumulative_weights(num_particles);
     cumulative_weights[0] = particles[0].weight / total_weight;
@@ -242,10 +242,17 @@ void ParticleFilter::resample() {
 
     //generazione di un numero casuale all'interno di ogni sezione e calcolo della particella corrispondente
     std::uniform_real_distribution<double> dist_section(0.0, section);
+    
+    //utile al systematic resample
+    double start = dist_section(gen);
+
     int index = 0;
     for(int i = 0; i < num_particles; i++){
+    #if RESAMPLE_TYPE == 1
         double section_random = dist_section(gen) + section * i;
-
+    #elif RESAMPLE_TYPE == 2
+        double section_random = start + section * i;
+    #endif
         while(section_random > cumulative_weights[index] && index < num_particles-1){
             index++;
         }
