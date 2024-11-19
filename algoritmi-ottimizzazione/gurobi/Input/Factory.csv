@@ -1,0 +1,24 @@
+PROFIT AND PROD. TIME;P1;P2;P3;P4;P5;P6;P7
+Contribution to profit ;10;6;8;4;11;9;3;Number of Machines
+Grinding;0.5;0.7;0;0;0.3;0.2;0.5;4
+VerticalDrilling;0.1;0.2;0;0.3;0;0.6;0;2
+HorizontalDrilling;0.2;0;0.8;0;0;0;0.6;3
+Boring;0.05;0.03;0;0.07;0.1;0;0.08;1
+Planing;0;0.01;0.01;0.05;0;0;0.05;1
+;;;;;;;;
+MAX SALES;;;;;;;;
+January;500;1000;300;300;800;200;100;
+February;600;500;200;0;400;300;150;
+March;300;600;0;0;500;400;100;
+April;200;300;400;500;200;0;100;
+May;0;100;500;100;1000;300;0;
+June;500;500;100;300;1100;500;60;
+;;;;;;;;
+;;;;;;;;
+UNAVAILABLE;Grinding;VerticalDrilling;HorizontalDrilling;Boring;Planing;;;
+January;1;0;0;0;0;;;
+February;0;0;2;0;0;;;
+March;0;0;0;1;0;;;
+April;0;1;0;0;0;;;
+May;1;1;0;0;0;;;
+June;0;0;1;0;1;;;

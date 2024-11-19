@@ -2,6 +2,7 @@
 ./lib
 .vscode
 *.o
+Pipfile*
 
 #linguaggi e compilatori
 linguaggi-compilatori/**/*.ll
@@ -22,3 +23,6 @@ platforms-algorithms-autonomous-vehicles/**/*.bag
 
 #HPC
 high-performance-computing/board4/**
+
+#algoritmi-ottimizzazione
+algoritmi-ottimizzazione/gurobi/Output/*
