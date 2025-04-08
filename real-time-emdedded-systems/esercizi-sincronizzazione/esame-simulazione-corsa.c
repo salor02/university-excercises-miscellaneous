@@ -28,6 +28,7 @@ struct corsa_t{
     sem_t priv_arbitro, priv_corridori;
 
     int active_corridori, block_corridori;
+    bool block_arbitro;
 
     int primo, ultimo;
 }corsa;
@@ -41,6 +42,8 @@ void init_corsa(struct corsa_t *corsa){
 
     //inizializzazione a -1 per segnalare posizione vuota
     corsa->primo = corsa->ultimo = -1;
+
+    corsa->block_arbitro = false;
 }
 
 //blocco se block_corridori < n
@@ -48,8 +51,10 @@ void corridore_attendivia(struct corsa_t *corsa, int numerocorridore){
     sem_wait(&corsa->mutex);
 
     if(corsa->block_corridori < N){
+        printf("[corridore %d] arrivato alla partenza\n", numerocorridore);
         corsa->block_corridori++;
-        if(corsa->block_corridori == N){
+        if(corsa->block_corridori == N && corsa->block_arbitro){
+            printf("[corridore %d] sveglio arbitro\n", numerocorridore);
             sem_post(&corsa->priv_arbitro);
         }
     }
@@ -62,11 +67,17 @@ void corridore_attendivia(struct corsa_t *corsa, int numerocorridore){
 void corridore_arrivo(struct corsa_t *corsa, int numerocorridore){
     sem_wait(&corsa->mutex);
 
-    if(corsa->active_corridori == N) corsa->primo = numerocorridore;
+    printf("[corridore %d] arrivato al traguardo\n", numerocorridore);
+
+    if(corsa->active_corridori == N){
+        corsa->primo = numerocorridore;
+        printf("[corridore %d] sono il primo!\n", numerocorridore);
+    }
 
     corsa->active_corridori--;
 
     if(corsa->active_corridori == 0){
+        printf("[corridore %d] sono l'ultimo, sveglio l'arbitro\n", numerocorridore);
         corsa->ultimo = numerocorridore;
         sem_post(&corsa->priv_arbitro);
     }
@@ -77,9 +88,16 @@ void corridore_arrivo(struct corsa_t *corsa, int numerocorridore){
 //blocco se block_corridori < n, proseguo se = N
 void arbitro_attendicorridori(struct corsa_t *corsa){
     sem_wait(&corsa->mutex);
+    
+    printf("[arbitro]: arrivato\n");
 
     if(corsa->block_corridori == N){
+        printf("[arbitro]: tutti i corridori in attesa\n");
         sem_post(&corsa->priv_arbitro);
+    }
+    else{
+        printf("[arbitro]: attendo corridori\n");
+        corsa->block_arbitro = true;
     }
 
     sem_post(&corsa->mutex);
@@ -102,7 +120,10 @@ void arbitro_via(struct corsa_t *corsa){
 void arbitro_risultato(struct corsa_t *corsa, int *primo, int *ultimo){
     sem_wait(&corsa->mutex);
 
+    printf("[arbitro] attendo corridori all'arrivo\n");
+
     if(corsa->active_corridori == 0){
+        printf("[arbitro] tutti i corridori arrivati al traguardo\n");
         sem_post(&corsa->priv_arbitro);
     }
 
@@ -226,12 +247,12 @@ void pausetta(void)
 
 void *corridore(void* arg)
 {
-    fprintf(stderr,"p");
+    //fprintf(stderr,"p");
     corridore_attendivia(&corsa, (int)(intptr_t)arg);
-    fprintf(stderr,"c");
+    //fprintf(stderr,"c");
     pausetta();
     corridore_arrivo(&corsa, (int)(intptr_t)arg);
-    fprintf(stderr,"a");
+    //fprintf(stderr,"a");
 
     return 0;
 }
@@ -239,11 +260,11 @@ void *corridore(void* arg)
 void *arbitro()
 {
     int primo, ultimo;
-    fprintf(stderr,"P");
+    //fprintf(stderr,"P");
     arbitro_attendicorridori(&corsa);
-    fprintf(stderr,"V");
+    //fprintf(stderr,"V");
     arbitro_via(&corsa);
-    fprintf(stderr,"F");
+    //fprintf(stderr,"F");
     arbitro_risultato(&corsa, &primo, &ultimo);
     //pausetta();
 
@@ -279,7 +300,7 @@ int main()
   /* aspetto 10 secondi prima di terminare tutti quanti */
   sleep(2);
 
-  fprintf(stderr,"%d",corsa.ultimo);
+  fprintf(stderr,"[risultati main] %d - %d\n",corsa.primo, corsa.ultimo);
 
   return 0;
 }
