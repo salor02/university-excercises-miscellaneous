@@ -1,8 +1,8 @@
 #!/bin/bash
 
-remote_path=$'/nfs/home/301414\r/hpc-lab-public-sources/'
+remote_path=$'/nfs/home/301414\r/'
 local_path='./board4'
-port=22704
+port=22700
 user=301414
 
 if [ "$1" = "tunnel" ]; then
