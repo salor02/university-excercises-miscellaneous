@@ -8,9 +8,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#define STATO_AC 0
-#define STATO_B 1
-#define STATO_DE 2
+#define STATO_INIT 0
+#define STATO_AC 1
+#define STATO_B 2
+#define STATO_DE 3
+
+#define COND
+
+#ifdef SEM
 
 struct gestione_t {
     sem_t mutex;
@@ -169,6 +174,162 @@ void endE(struct gestione_t *g){
     endD(g);
 }
 
+#elif defined COND
+
+struct gestione_t {
+    pthread_mutex_t mutex;
+    pthread_cond_t priv_AC, priv_B, priv_DE;
+
+    int active_AC, active_B, active_DE;
+    int block_AC, block_B, block_DE;
+
+    int status;
+} gestore;
+
+void init_g(struct gestione_t *g){
+    pthread_mutexattr_t m;
+    pthread_condattr_t c;
+
+    pthread_mutexattr_init(&m);
+    pthread_mutex_init(&g->mutex, &m);
+    pthread_mutexattr_destroy(&m);
+
+    pthread_condattr_init(&c);
+    pthread_cond_init(&g->priv_AC, &c);
+    pthread_cond_init(&g->priv_B, &c);
+    pthread_cond_init(&g->priv_DE, &c);
+    pthread_condattr_destroy(&c);
+
+    g->active_AC = g->active_DE = g->active_B = g->block_AC = g->block_B = g->block_DE = 0;
+
+    g->status = STATO_INIT;
+}
+
+void sveglia_A_o_C(struct gestione_t *g){
+    if(g->block_AC){
+        pthread_cond_signal(&g->priv_AC);
+    }
+    g->status = STATO_INIT;
+    
+}
+
+//blocco se stato != STATO_INIT, transizione a STATO_AC 
+void startA(struct gestione_t *g){
+    pthread_mutex_lock(&g->mutex);
+
+    while(g->status != STATO_INIT){
+        g->block_AC++;
+        pthread_cond_wait(&g->priv_AC, &g->mutex);
+        g->block_AC--;
+    }
+
+    g->active_AC++;
+    g->status = STATO_AC;
+
+    pthread_mutex_unlock(&g->mutex);
+}
+
+//transizione a STATO_B, sveglio B se block_B > 0
+void endA(struct gestione_t *g){
+    pthread_mutex_lock(&g->mutex);
+    
+    g->active_AC--;
+
+    if(g->block_B){
+        pthread_cond_broadcast(&g->priv_B);
+    }
+
+    g->status = STATO_B;
+
+    pthread_mutex_unlock(&g->mutex);
+}
+
+//blocco se stato != STATO_B
+void startB(struct gestione_t *g){
+    pthread_mutex_lock(&g->mutex);
+    
+    while(g->status != STATO_B){
+        g->block_B++;
+        pthread_cond_wait(&g->priv_B, &g->mutex);
+        g->block_B--;
+    }
+
+    g->active_B++;
+
+    pthread_mutex_unlock(&g->mutex);
+}
+
+//se block_AC > 0, signal su priv_AC e transizione su STATO_AC, altrimenti transizione su STATO_INIT
+void endB(struct gestione_t *g){
+    pthread_mutex_lock(&g->mutex);
+    
+    g->active_B--;
+
+    if(g->active_B == 0){
+        sveglia_A_o_C(g);
+    }
+
+    pthread_mutex_unlock(&g->mutex);
+}
+
+//blocco se stato != STATO_INIT, transizione a STATO_AC
+void startC(struct gestione_t *g){
+    startA(g);
+}
+
+//transizione a STATO_DE, signal su priv_DE se block_DE > 0
+void endC(struct gestione_t *g){
+    pthread_mutex_lock(&g->mutex);
+
+    g->active_AC--;
+    
+    if(g->block_DE){
+        pthread_cond_signal(&g->priv_DE);
+    }
+
+    g->status = STATO_DE;
+
+    pthread_mutex_unlock(&g->mutex);
+}
+
+//blocco se stato != STATO_DE
+void startD(struct gestione_t *g){
+    pthread_mutex_lock(&g->mutex);
+    
+    while(g->status != STATO_DE || g->active_DE){
+        g->block_DE++;
+        pthread_cond_wait(&g->priv_DE, &g->mutex);
+        g->block_DE--;
+    }
+
+    g->active_DE++;
+
+    pthread_mutex_unlock(&g->mutex);
+}
+
+//se block_AC > 0, signal su priv_AC e transizione su STATO_AC, altrimenti transizione su STATO_INIT
+void endD(struct gestione_t *g){
+    pthread_mutex_lock(&g->mutex);
+    
+    g->active_DE--;
+
+    sveglia_A_o_C(g);
+
+    pthread_mutex_unlock(&g->mutex);
+}
+
+//blocco se stato != STATO_DE
+void startE(struct gestione_t *g){
+    startD(g);
+}
+
+//se block_AC > 0, signal su priv_AC e transizione su STATO_AC, altrimenti transizione su STATO_INIT
+void endE(struct gestione_t *g){
+    endD(g);
+}
+
+#endif
+
 /* -------------- TESTING --------------- */
 
 
@@ -283,7 +444,7 @@ int main()
   pthread_attr_destroy(&a);
 
   /* aspetto 10 secondi prima di terminare tutti quanti */
-  sleep(10);
+  sleep(5);
 
   return 0;
 }
