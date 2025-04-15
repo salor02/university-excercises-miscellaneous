@@ -1,0 +1,171 @@
+#include <stdio.h>
+#include <semaphore.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define N 10
+
+struct passerella_t{
+    pthread_mutex_t mutex;
+    pthread_cond_t priv_pedoni, priv_guardiano;
+
+    int active_pedoni, block_pedoni;
+    bool barca, abbassato;
+} passerella;
+
+void init_passerella(struct passerella_t *passerella){
+    pthread_mutexattr_t m;
+    pthread_condattr_t c;
+
+    pthread_mutexattr_init(&m);
+    pthread_mutex_init(&passerella->mutex, &m);
+    pthread_mutexattr_destroy(&m);
+
+    pthread_condattr_init(&c);
+    pthread_cond_init(&passerella->priv_pedoni, &c);
+    pthread_cond_init(&passerella->priv_guardiano, &c);
+    pthread_condattr_destroy(&c);
+
+    passerella->active_pedoni = passerella->block_pedoni = 0;
+    passerella->barca = passerella->abbassato = false;
+}
+
+int pedone_entro_passerella(struct passerella_t *passerella, int hofretta){
+    pthread_mutex_lock(&passerella->mutex);
+    
+    if(hofretta){
+        if(!passerella->abbassato){
+            pthread_mutex_unlock(&passerella->mutex);
+            return 0;
+        }
+    }
+    else{
+        while(passerella->barca || !passerella->abbassato){
+            printf("w%d", hofretta);
+            passerella->block_pedoni++;
+            pthread_cond_wait(&passerella->priv_pedoni, &passerella->mutex);
+            passerella->block_pedoni--;
+        }
+    }
+
+    passerella->active_pedoni++;
+    
+    pthread_mutex_unlock(&passerella->mutex);
+    return 1;
+}
+
+void pedone_esco_passerella(struct passerella_t *passerella){
+    pthread_mutex_lock(&passerella->mutex);
+    
+    passerella->active_pedoni--;
+
+    if(passerella->active_pedoni == 0 && passerella->barca){
+        pthread_cond_signal(&passerella->priv_guardiano);
+    }
+
+    pthread_mutex_unlock(&passerella->mutex);
+}
+
+void guardiano_abbasso_passerella(struct passerella_t *passerella){
+    pthread_mutex_lock(&passerella->mutex);
+    
+    printf("-");
+
+    passerella->abbassato = true;
+    passerella->barca = false;
+
+    if(passerella->block_pedoni){
+        pthread_cond_broadcast(&passerella->priv_pedoni);
+    }
+
+    pthread_mutex_unlock(&passerella->mutex);
+}
+
+void guardiano_alzo_passerella(struct passerella_t *passerella){
+    pthread_mutex_lock(&passerella->mutex);
+    
+    printf("b");
+    passerella->barca = true;
+
+    while(passerella->active_pedoni){
+        printf("B");
+        pthread_cond_wait(&passerella->priv_guardiano, &passerella->mutex);
+    }
+
+    printf("+");
+    passerella->abbassato = false;
+    
+    pthread_mutex_unlock(&passerella->mutex);
+}
+
+//----- TESTING -----
+void pausetta(void)
+{
+    struct timespec t;
+    t.tv_sec = 0;
+    t.tv_nsec = (rand()%10+1)*1000000;
+    nanosleep(&t,NULL);
+}
+
+void *pedone(void *arg){
+    int id = (int)(intptr_t)arg;
+
+    while(1){
+        int hofretta = rand()%2;
+        printf("a%d", hofretta);
+
+        if(pedone_entro_passerella(&passerella, hofretta)){
+            printf("p%d", hofretta);
+            pausetta();
+            pedone_esco_passerella(&passerella);
+            printf("e%d", hofretta);
+        }
+        else
+            printf("c%d", hofretta);
+        
+        sleep(10);
+    }
+
+    return 0;
+}
+
+void *guardiano(void *arg){
+    while(1){
+        guardiano_abbasso_passerella(&passerella);
+        pausetta();
+        guardiano_alzo_passerella(&passerella);
+        sleep(5);
+    }    
+}
+
+int main()
+{
+    pthread_attr_t a;
+    pthread_t p;
+    
+    /* inizializzo il mio sistema */
+    init_passerella(&passerella);
+
+    /* inizializzo i numeri casuali, usati nella funzione pausetta */
+    srand(555);
+
+    pthread_attr_init(&a);
+
+    /* non ho voglia di scrivere 10000 volte join! */
+    pthread_attr_setdetachstate(&a, PTHREAD_CREATE_DETACHED);
+
+    for(int i = 0; i < N; i++){
+        pthread_create(&p, &a, pedone, (void *)(intptr_t) i);
+    }
+
+    pthread_create(&p, &a, guardiano, NULL);
+
+    pthread_attr_destroy(&a);
+
+    /* aspetto 10 secondi prima di terminare tutti quanti */
+    sleep(10);
+
+    return 0;
+}
