@@ -21,7 +21,13 @@
     guardiano. Questo significa che con un numero di thread sufficientemente alto è possibile prolungare indefinitivamente l'attesa del guardiano, anche in caso di
     barca in arrivo.
 
-    Per confermare questo problema si esegua questo programma di testing 
+    Per confermare questo problema si esegua questo programma di testing impostando N ad almeno 100, ATTESA_GUARDIANO_MS e TEMPO_ESECUZIONE_MAX a 50ms di 
+    differenza. Si stampi l'output del programma in un file e si cerchi la stringa "barca in arrivo!" che sarà sicuramente presente, e la poi la stringa
+    "lascio passare la barca", che talvolta invece risulta assente. Un risultato del genere dimostra che il guardiano va in stato di attesa ma non riesce
+    a far passare la barca nel giro di 50ms, tempo che si dilata se si aumenta N. Con un sistema modellato per impostare il parametro "hofretta" in maniera
+    casuale tra 0 e 1, prima o poi tutti i thread verranno generati con "hofretta" = 0 e si bloccheranno tutti, lasciando passare la barca, ma questo
+    comportamento non rispetta la precedenza che la barca dovrebbe avere come richiesto nel testo. Inoltre, nel caso in cui tutti i pedoni abbiano fretta 
+    questo programma presenta un vero e proprio problema di starvation del guardiano.
 */
 
 #include <stdio.h>
