@@ -1,3 +1,29 @@
+/*
+    Signature di alcune funzioni cambiate per motivi di testing, in particolare:
+        - int pedone_entro_passerella(struct passerella_t *passerella, int hofretta, int id_pedone) -> aggiunto id_pedone
+        - void pedone_esco_passerella(struct passerella_t *passerella, int hofretta, int id_pedone) -> aggiunti hofretta e id_pedone
+
+    Ho testato il programma consegnato e non ho trovato nessun deadlock. Anche la sequenza delle operazione eseguite mi sembra corretta per come 
+    l'avevo pensata. Credo però di aver frainteso l'utilizzo del parametro "hofretta" specificato per ogni thread, più nel dettaglio io ho modellato
+    il problema come segue.
+
+    Ho inserito nella struct due bool:
+    - "barca" per segnalare che il guardiano ha visto una barca in avvicinamento e deve sgomberare il pontile
+    - "abbassato" per segnalare l'effettivo stato attuale del pontile
+
+    Il sistema utilizza due bool per distinguere il caso in cui un pedone dovesse avere fretta, in particolare il sistema si comporta come segue:
+    - se il pedone non ha fretta e il pontile è abbassato OR la barca è in arrivo => va in stato di attesa
+    - se il pedone ha fretta, basta che il pontile sia abbassato per procedere con l'esecuzione. Anche se ci dovesse essere una barca in arrivo, quindi, 
+    i pedoni che hanno fretta passano comunque. Un caso simile nel mondo reale è dato da un passaggio a livello in cui finchè le sbarre non sono abbassate qualche 
+    macchina potrebbe continuare effettivamente a passare. L'unico modo per fermare un pedone di fretta è quindi quello di alzare il pontile.
+
+    C'è un problema però! Questo ragionamento che nella mia testa aveva senso perde di significato dato che è l'ultimo pedone che si deve occupare di svegliare il 
+    guardiano. Questo significa che con un numero di thread sufficientemente alto è possibile prolungare indefinitivamente l'attesa del guardiano, anche in caso di
+    barca in arrivo.
+
+    Per confermare questo problema si esegua questo programma di testing 
+*/
+
 #include <stdio.h>
 #include <semaphore.h>
 #include <pthread.h>
@@ -5,7 +31,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define N 10
+#define N 100
+#define ATTESA_GUARDIANO_MS 2000
+#define TEMPO_ESECUZIONE_MAX 2050
 
 struct passerella_t{
     pthread_mutex_t mutex;
@@ -32,7 +60,7 @@ void init_passerella(struct passerella_t *passerella){
     passerella->barca = passerella->abbassato = false;
 }
 
-int pedone_entro_passerella(struct passerella_t *passerella, int hofretta){
+int pedone_entro_passerella(struct passerella_t *passerella, int hofretta, int id_pedone){
     pthread_mutex_lock(&passerella->mutex);
     
     if(hofretta){
@@ -40,11 +68,11 @@ int pedone_entro_passerella(struct passerella_t *passerella, int hofretta){
             pthread_mutex_unlock(&passerella->mutex);
             return 0;
         }
-        printf("[pedone hofretta=%d] passerella abbassata, vado\n", hofretta);
+        printf("[pedone %d, hofretta=%d] passerella abbassata, vado\n", id_pedone, hofretta);
     }
     else{
         while(passerella->barca || !passerella->abbassato){
-            printf("[pedone hofretta=%d] passerella chiusa o barca in arrivo, attendo\n", hofretta);
+            printf("[pedone %d, hofretta=%d] passerella chiusa o barca in arrivo, attendo\n", id_pedone, hofretta);
             passerella->block_pedoni++;
             pthread_cond_wait(&passerella->priv_pedoni, &passerella->mutex);
             passerella->block_pedoni--;
@@ -57,13 +85,13 @@ int pedone_entro_passerella(struct passerella_t *passerella, int hofretta){
     return 1;
 }
 
-void pedone_esco_passerella(struct passerella_t *passerella){
+void pedone_esco_passerella(struct passerella_t *passerella, int hofretta, int id_pedone){
     pthread_mutex_lock(&passerella->mutex);
     
     passerella->active_pedoni--;
 
     if(passerella->active_pedoni == 0 && passerella->barca){
-        printf("[pedone] sono l'ultimo pedone, sveglio il guardiano\n");
+        printf("[pedone %d, hofretta=%d] sono l'ultimo pedone, sveglio il guardiano\n", id_pedone, hofretta);
         pthread_cond_signal(&passerella->priv_guardiano);
     }
 
@@ -119,16 +147,15 @@ void *pedone(void *arg){
         int hofretta = rand()%2;
         printf("[pedone %d, hofretta=%d] arrivato\n", id, hofretta);
 
-        if(pedone_entro_passerella(&passerella, hofretta)){
+        if(pedone_entro_passerella(&passerella, hofretta, id)){
             printf("[pedone %d, hofretta=%d] attraverso\n", id, hofretta);
             pausetta();
-            pedone_esco_passerella(&passerella);
+            pedone_esco_passerella(&passerella, hofretta, id);
             printf("[pedone %d, hofretta=%d] vado via\n", id, hofretta);
         }
         else
             printf("[pedone %d, hofretta=%d] passerella chiusa, cambio strada\n", id, hofretta);
         
-        sleep(10);
     }
 
     return 0;
@@ -138,10 +165,9 @@ void *guardiano(void *arg){
     while(1){
         guardiano_abbasso_passerella(&passerella);
         printf("[guardiano] attendo barca\n");
-        pausetta();
+        usleep(ATTESA_GUARDIANO_MS * 1000);
         guardiano_alzo_passerella(&passerella);
         printf("[guardiano] lascio passare la barca\n");
-        sleep(5);
     }    
 }
 
@@ -158,7 +184,6 @@ int main()
 
     pthread_attr_init(&a);
 
-    /* non ho voglia di scrivere 10000 volte join! */
     pthread_attr_setdetachstate(&a, PTHREAD_CREATE_DETACHED);
 
     for(int i = 0; i < N; i++){
@@ -169,8 +194,7 @@ int main()
 
     pthread_attr_destroy(&a);
 
-    /* aspetto 10 secondi prima di terminare tutti quanti */
-    sleep(10);
+    usleep(TEMPO_ESECUZIONE_MAX * 1000);
 
     return 0;
 }
