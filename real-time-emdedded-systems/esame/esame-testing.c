@@ -11,9 +11,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define N 10
-#define ATTESA_GUARDIANO_MS 2000
-#define TEMPO_ESECUZIONE_MAX 3000
+#define N 100
+#define ATTESA_GUARDIANO_MS 100
+#define ATTESA_TRANSITO_BARCA_MS 10
+#define TEMPO_ESECUZIONE_MAX 150
+#define PEDONE_ENTRO_PASSERELLA 2  //impostare 1 per utilizzare versione con starvation, 2 per versione corretta
 
 struct passerella_t{
     pthread_mutex_t mutex;
@@ -61,6 +63,7 @@ void init_passerella(struct passerella_t *passerella){
     
     Se un pedone ha fretta può comunque passare a patto che la passerella sia abbassata, anche se è stata avvistata una barca (guardiano in stato di wait)
 */
+#if PEDONE_ENTRO_PASSERELLA == 1
 int pedone_entro_passerella(struct passerella_t *passerella, int hofretta, int id_pedone){
     pthread_mutex_lock(&passerella->mutex);
     
@@ -93,7 +96,8 @@ int pedone_entro_passerella(struct passerella_t *passerella, int hofretta, int i
     La differenza sta nel fatto che un pedone che ha fretta esce subito se fallisce il controllo, mentre un pedone che non ha fretta si mette
     in attesa. Si noti che la funzione non è mai bloccante per un pedone che ha fretta e che può passare, dato che non può mai entrare nel while. 
 */
-int pedone_entro_passerella_v2(struct passerella_t *passerella, int hofretta, int id_pedone){
+#elif PEDONE_ENTRO_PASSERELLA == 2
+int pedone_entro_passerella(struct passerella_t *passerella, int hofretta, int id_pedone){
     pthread_mutex_lock(&passerella->mutex);
     
     if(hofretta)
@@ -123,6 +127,7 @@ int pedone_entro_passerella_v2(struct passerella_t *passerella, int hofretta, in
     pthread_mutex_unlock(&passerella->mutex);
     return 1;
 }
+#endif
 
 /*
     L'ultimo pedone a passare si deve occupare di svegliare il guardiano. Si noti che nella condizione viene anche verificata l'effettiva presenza di una barca e, di conseguenza, 
@@ -143,7 +148,7 @@ void pedone_esco_passerella(struct passerella_t *passerella, int hofretta, int i
 }
 
 /*
-    Il guardiano resetta entrambe le variabili bool in modo da permettere ad aventuali pedoni di attraversare la passerella. In caso ci siano pedoni bloccati, 
+    Il guardiano resetta la variabile "abbassato" in modo da permettere ad aventuali pedoni di attraversare la passerella. In caso ci siano pedoni bloccati, 
     vengono svegliati tutti. Si noti che anche in questo caso l'if è evitabile, dato l'utilizzo delle variabili condizionali. 
 */
 void guardiano_abbasso_passerella(struct passerella_t *passerella){
@@ -211,8 +216,7 @@ void *pedone(void *arg){
         int hofretta = rand()%2; //assegnazione random della fretta
         printf("[pedone %d, hofretta=%d] arrivato\n", id, hofretta);
 
-        //utilizza la funzione corretta, omettere v2 per utilizzare la funzione originale
-        if(pedone_entro_passerella_v2(&passerella, hofretta, id)){
+        if(pedone_entro_passerella(&passerella, hofretta, id)){
             printf("[pedone %d, hofretta=%d] attraverso\n", id, hofretta);
             pausetta();
             pedone_esco_passerella(&passerella, hofretta, id);
@@ -234,7 +238,7 @@ void *guardiano(void *arg){
         usleep(ATTESA_GUARDIANO_MS * 1000);
         guardiano_alzo_passerella(&passerella);
         printf("[guardiano] lascio passare la barca\n");
-        usleep(ATTESA_GUARDIANO_MS * 100);
+        usleep(ATTESA_TRANSITO_BARCA_MS * 1000);
     }    
 }
 
