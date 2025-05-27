@@ -1,0 +1,1 @@
+/usr/bin/cc  -ffunction-sections -fdata-sections CMakeFiles/02_queues.dir/main.c.o -o ../../02_queues  ../../libFreeRTOS.a -lpthread ../common/libcommon_utils.a 

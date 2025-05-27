@@ -1,0 +1,1 @@
+/usr/bin/cc  -ffunction-sections -fdata-sections CMakeFiles/05_timers.dir/main.c.o -o ../../05_timers  ../../libFreeRTOS.a -lpthread ../common/libcommon_utils.a 

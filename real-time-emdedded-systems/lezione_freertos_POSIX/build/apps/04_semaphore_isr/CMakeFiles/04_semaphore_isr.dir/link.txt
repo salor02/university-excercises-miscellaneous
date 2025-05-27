@@ -1,0 +1,1 @@
+/usr/bin/cc  -ffunction-sections -fdata-sections CMakeFiles/04_semaphore_isr.dir/main.c.o CMakeFiles/04_semaphore_isr.dir/port_simulated_interrupt.c.o -o ../../04_semaphore_isr  ../../libFreeRTOS.a -lpthread ../common/libcommon_utils.a 

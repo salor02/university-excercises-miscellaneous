@@ -1,0 +1,1 @@
+/usr/bin/cc  -ffunction-sections -fdata-sections CMakeFiles/01_tasks.dir/main.c.o -o ../../01_tasks  ../../libFreeRTOS.a -lpthread ../common/libcommon_utils.a 

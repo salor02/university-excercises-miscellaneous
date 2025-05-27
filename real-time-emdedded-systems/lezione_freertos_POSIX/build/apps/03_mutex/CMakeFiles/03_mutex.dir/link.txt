@@ -1,0 +1,1 @@
+/usr/bin/cc  -ffunction-sections -fdata-sections CMakeFiles/03_mutex.dir/main.c.o -o ../../03_mutex  ../../libFreeRTOS.a -lpthread ../common/libcommon_utils.a 
