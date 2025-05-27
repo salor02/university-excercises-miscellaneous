@@ -1,0 +1,10 @@
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/uninstall.dir
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/pubsub_uninstall.dir
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/subnode.dir
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/test.dir
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/edit_cache.dir
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/rebuild_cache.dir
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/list_install_components.dir
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/install.dir
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/install/local.dir
+/data/Documents/university-excercises-miscellaneous/real-time-emdedded-systems/ros/lab_ws/build/CMakeFiles/install/strip.dir
