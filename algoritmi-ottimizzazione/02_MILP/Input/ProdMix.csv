@@ -1,0 +1,6 @@
+;Comp1;Comp2;Comp3;maxProd;revenue
+ProdA;2;5;0;300;30
+ProdB;4;0;6;180;28
+ProdC;0;2;1;500;24
+maxSupply;800;900;1300;;
+cost;2;4;3;;

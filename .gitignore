@@ -25,4 +25,4 @@ platforms-algorithms-autonomous-vehicles/**/*.bag
 high-performance-computing/board4/**
 
 #algoritmi-ottimizzazione
-algoritmi-ottimizzazione/gurobi/Output/*
+algoritmi-ottimizzazione/**/Output/*
