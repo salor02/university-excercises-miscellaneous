@@ -17,7 +17,35 @@ from gurobipy import GRB
 
 import tsp_utils as tspu
 
+QUIET = 0
+
+def subtour(edges,n):
+    visited = [False for i in range(n)]
+    shortestTour = range(n+1)
+    for (i,j) in edges :
+        if not visited[i]:
+            isave = i
+            narcs = 1
+            visited[i] = True
+            tour = [i]
+
+            while j != isave:
+                neighbor = [next_node for (current_node, next_node) in edges.select(j,'*') if next_node != i ]
+                neighbor.extend([next_node for (next_node, current_node) in edges.select('*',j) if next_node != i])
+                k = neighbor[0]
+                visited[j] = True
+                tour.append(j)
+                i = j
+                j = k
+                narcs = narcs + 1
+            if narcs < len(shortestTour):
+                shortestTour = tour
+    return shortestTour
+
+
 def main():
+    QUIET = False
+   
     RANDOM = False # if True generates a random instance
     TSPLIB = True # if true reads a TSPLIB instance (name in argv[1])
         
@@ -39,25 +67,41 @@ def main():
         if RANDOM :
             random.seed(92489)
             points, dist  = tspu.randomEuclGraph(n,100)
+    
+    # distance is a dictionary where the keys are the edges and the values the corresponding distances
+    if QUIET:
+        gp.setParam('OutputFlag', 0)
+    else:
+        gp.setParam('OutputFlag', 1)
         
     #defines model
     m = gp.Model()
 
     # Create variables
-    edges = [(i,j) for (i,j) in dist.keys()]
-    visit_order = [0 for i in range(n)]
-    vars_edges = m.addVars(edges, obj=dist, vtype=GRB.BINARY, name='e')
-    vars_visit_order = m.addVars(range(1,len(visit_order)), lb=0, vtype=GRB.INTEGER, name='visit order')
+    edges = [(i,j) for (i,j) in dist.keys() if i < j ] #li prende in quest'ordine per convenzione
+    vars = m.addVars(edges, obj=dist, vtype=GRB.BINARY, name='e')
+    
+    # You could use Python looping constructs and m.addVar() to create
+    # these decision variables instead.  The following would be equivalent
+    # to the preceding m.addVars() call...
+    #
+    # vars = tupledict()
+    # for i,j in dist.keys():
+    #   vars[i,j] = m.addVar(obj=dist[i,j], vtype=GRB.BINARY,
+    #                        name='e[%d,%d]'%(i,j))
 
     # Add degree-2 constraint
     
-    m.addConstrs(vars_edges.sum(i, '*') == 1 for i in range(n))
-    m.addConstrs(vars_edges.sum('*', j) == 1 for j in range(n))
-
-    for i in vars_visit_order:
-        for j in vars_visit_order:
-            if j != 1:
-                m.addConstr(vars_visit_order[j] - vars_visit_order[i] >= 1 - sys.maxsize * (1 - vars_edges[i,j]))
+    # serve a specificare che ogni vertice ha un arco che esce e uno che entra, la somma è necessaria perchè per come
+    # si è costruita la variabile edges senza il secondo termine escluderemmo tutti gli archi i cui vertici hanno 
+    # un indice inferiore ad i.
+    m.addConstrs(vars.sum(i, '*') + vars.sum('*',i) == 2 for i in range(n))
+    
+    # Using Python looping constructs, the preceding would be...
+    #
+    # for i in range(n):
+    #   m.addConstr(sum(vars[i,j] for j in range(n)) == 2)
+    
     
     # Optimize model
     
@@ -65,20 +109,40 @@ def main():
     cutCount = 0
     start = time.process_time()
     
-    m.optimize()
-    m.write("my_tsp.lp")
-    vals = m.getAttr('x', vars_edges)
-    selected_edges = gp.tuplelist((i, j) for i, j in vals.keys() if vals[i, j] == 1)
-    tourLength = len(selected_edges)
-    m.write("myatsp.lp")
+    while (tourLength < n):
+        #solve the current problem
+        m.optimize()
+        m.write("tsp.lp")
+        #find the smallest tour
+        vals = m.getAttr('x', vars)
+        selected_edges = gp.tuplelist((i, j) for i, j in vals.keys() if vals[i, j] > 0.5)
+        tour = subtour(selected_edges,n)
+        tourLength = len(tour)
+        #
+        if tourLength < n:
+            # add subtour elimination constr. for every pair of cities in tour
+            if not QUIET:
+                print('\n>>> Subtour eliminated  %s\n' % str(tour))
+                print(tour.index)
+                tspu.plot_selectedEdges2D(points, edges, selected_edges, title="Subtours", figsize=(12, 12), save_fig=None)
+
+#            m.addConstr(gp.quicksum(vars[i, j] for i, j in combinations(tour, 2))
+#                           <= len(tour)-1)   
+            m.addConstr(gp.quicksum(vars[i, j] for i in tour for j in tour if j > i)
+                           <= len(tour)-1)               
+            cutCount = cutCount + 1
+        m.write("stsp.lp")
 
     end = time.process_time() 
     
 
+    tour = subtour(selected_edges,n)
+    #checks that the current solution is an Hamiltonian circuit      
+    assert len(tour) == n
     
     print('Added cuts : %d ' % cutCount)
     print("Points: ",points)
-    print('Optimal tour: %s' % str(selected_edges))
+    print('Optimal tour: %s' % str(tour))
     print('Optimal cost: %g Time = %g' % (m.objVal, end-start))
     print('')
     tspu.plot_selectedEdges2D(points, edges, selected_edges, save_fig='Try.png')

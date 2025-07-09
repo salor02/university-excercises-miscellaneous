@@ -13,13 +13,22 @@ def plot(n, points, dist,s_edges=[],  tit=[]):
 ############################### MAIN ##################################################
 def main():
     #generate and display 2D graphs
-    TSPLIB = False # if true reads a TSPLIB instance (name in argv[1])    
+    TSPLIB = True # if true reads a TSPLIB instance (name in argv[1])    
            
     if TSPLIB:
         if len(sys.argv) < 2:
             print('Usage: ShoGraphs.py nameOfTsplibInstanceFile\n\n')
             sys.exit(1)  
-        n, points, dist = tspu.readTSPLIB(sys.argv[1])
+        n, points, dist, optTour, optCost = tspu.readTSPLIB(sys.argv[1])
+        print(points)
+        print(dist)
+        print(optCost)
+        print(optTour)
+        optTourDist = {}
+        for i, node in enumerate(optTour):
+            optTourDist[(node, optTour[i+1])] = dist[(node, optTour[i+1])]
+            if i+1 == len(optTour)-1:
+                break
     else:
         #random instance 
         if len(sys.argv) < 2:
@@ -45,7 +54,7 @@ def main():
         prob = 0.5
         #random.seed(1243)
         points,dist  = tspu.randomGraph2D(n, prob)
-        plot(n,points,dist,tit="Random Graph in 2D")  
+    plot(n,points,optTourDist,tit="Random Graph in 2D")  
         
 if __name__ == '__main__':
 	main()

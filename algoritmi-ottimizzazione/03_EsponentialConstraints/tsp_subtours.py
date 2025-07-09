@@ -125,7 +125,7 @@ def main():
             if not QUIET:
                 print('\n>>> Subtour eliminated  %s\n' % str(tour))
                 print(tour.index)
-                tspu.plot_selectedEdges2D(points, edges, selected_edges, title="Subtours", figsize=(12, 12), save_fig=None)
+                tspu.plot_selectedEdges2D(points, edges, selected_edges, title="Subtours", figsize=(12, 12), save_fig='opt.png')
 
 #            m.addConstr(gp.quicksum(vars[i, j] for i, j in combinations(tour, 2))
 #                           <= len(tour)-1)   

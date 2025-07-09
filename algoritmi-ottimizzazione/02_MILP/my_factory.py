@@ -74,7 +74,26 @@ def read_csv(file_path, sep = ','):
 
 
 def make_model(products, machines, periods, A, profits, MAXS, MC, model_name='ProductionMix'):
-    
+    m = gp.Model(model_name)
+    m.setParam("MIPGap", 0.00001)
+
+    x = m.addVars(periods, products, name="x",  vtype=GRB.INTEGER, lb=0 )
+    s = m.addVars(periods, products, name="s",  vtype=GRB.INTEGER, lb=0 )
+    i = m.addVars(periods, products, name="i",  vtype=GRB.INTEGER, lb=0 )
+
+    m.addConstrs((i[periods[periods.index(t)-1],j] + x[t,j] - s[t,j] == i[t,j] for t in periods[1:] for j in products))
+    m.addConstrs((i[t,j]  -x[t,j] + s[t,j] == 0 for t in periods[0:1] for j in products))
+
+    m.addConstrs((i[t,j] <= 100 for t in periods for j in products))
+    m.addConstrs((i[periods[len(periods)-1],j] == 50 for j in products))
+
+    m.addConstrs((s[t,j] <= MAXS[t,j] for t in periods for j in products))
+
+    m.addConstrs((gp.quicksum(A[i,j]*x[t,j] for j in products) <= 16*24*MC[i,t] for i in machines for t in periods))
+
+    m.setObjective(gp.quicksum(profits[j]*s[t,j] - 0.5*i[t,j] for j in products for t in periods), GRB.MAXIMIZE)
+
+    return m
 ###########################
 # MAIN
 ###########################
