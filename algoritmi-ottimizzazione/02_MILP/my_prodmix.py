@@ -12,6 +12,7 @@ Components, cost, maxSupply = gp.multidict ({
         'Comp 2': [4,  900],
         'Comp 3': [3, 1300]        
         })
+
 BOM = {
     ('Product A', 'Comp 1'): 2,
     ('Product A', 'Comp 2'): 5,
@@ -47,6 +48,7 @@ def main():
     m.write(path.join('Output','my_prodmix.lp'))
     m.optimize()
     printSolution(m)
+    
 
 if __name__ == "__main__":
-    main()    
+    main()  
