@@ -1,0 +1,6 @@
+Release/
+Debug/
+
+.ptp-sync
+.settings
+.ptp-sync-folder
