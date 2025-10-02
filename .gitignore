@@ -3,6 +3,7 @@
 .vscode
 *.o
 Pipfile*
+**/build
 
 #linguaggi e compilatori
 linguaggi-compilatori/**/*.ll
