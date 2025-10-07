@@ -3,6 +3,7 @@
 .vscode
 *.o
 Pipfile*
+**/build
 
 #linguaggi e compilatori
 linguaggi-compilatori/**/*.ll
@@ -26,3 +27,6 @@ high-performance-computing/board4/**
 
 #algoritmi-ottimizzazione
 algoritmi-ottimizzazione/**/Output/*
+
+#autonomous-driving-systems
+autonomous-driving-systems/**/*.pcd
