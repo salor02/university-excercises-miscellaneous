@@ -2,7 +2,7 @@
 ./lib
 .vscode
 *.o
-Pipfile*
+Pipfile.lock*
 **/build
 
 #linguaggi e compilatori
