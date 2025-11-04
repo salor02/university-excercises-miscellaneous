@@ -31,3 +31,8 @@ algoritmi-ottimizzazione/**/Output/*
 
 #autonomous-driving-systems
 autonomous-driving-systems/**/*.pcd
+
+#iot
+iot-systems/*/build/*
+iot-systems/*/managed_components/*
+iot-systems/*/sdkconfig.*
