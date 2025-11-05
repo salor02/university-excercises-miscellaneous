@@ -35,4 +35,4 @@ autonomous-driving-systems/**/*.pcd
 #iot
 iot-systems/**/build/*
 iot-systems/**/managed_components/*
-iot-systems/**/sdkconfig.*
+iot-systems/**/sdkconfig*
